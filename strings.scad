@@ -527,8 +527,8 @@ function _replace(string, replacement, indices, i=0) =
     ;
 
 
-function split(string, seperator=" ", ignore_case = false, regex=false) = 
-	_split(string, index_of(string, seperator, ignore_case=ignore_case, regex=regex));
+function split(string, separator=" ", ignore_case = false) = 
+	_split(string, index_of(string, separator, ignore_case=ignore_case), i=0);
     
 function _split(string, indices, i=0) = 
     len(indices) == 0?
