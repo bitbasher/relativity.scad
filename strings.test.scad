@@ -4,7 +4,23 @@ test = "foo  (1, bar2)";
 regex_test = "foooobazfoobarbaz";
 
 	
+string = "this is a test";
+numbers = "some 123 numb 15.5 ers, a-23nd pun5556; tations99";
+//echo( ascii_code( string ) );
+//echo( before( string, 6 ) );
+//echo( after( string, 6 ), "<<" );
+//echo( between( string, 5,8 ) );
+echo( parse_int( "14223" ) );
+echo( is_num( parse_int( "14223" ) ) );
 
+echo( grep( string, "[^0..9-]*" ) );
+// echo( grep( numbers, "[^0..9-]*" ) );
+
+echo( replace(string, "[a,t]" , "#", ignore_case=true, regex=true) );
+echo( "" );
+parsed = replace(numbers, "[^0-9\-\.]+" , "#", ignore_case=true, regex=true);
+echo( parsed );
+echo("");
 
 
 	
