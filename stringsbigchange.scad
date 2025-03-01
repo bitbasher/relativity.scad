@@ -87,7 +87,7 @@ _POS = 1;    // the 1-st item is ???
 function _match_parsed_peg( string, peg, string_pos=0, peg_op=undef,  ignore_case=false, string_code=undef ) =
 	let(
 		opcode = peg_op[0],
-		operands = _slice(peg_op, 1)
+		operands = slice(peg_op, 1)
 	)
 
 	string == undef?
@@ -133,7 +133,7 @@ function _match_parsed_peg( string, peg, string_pos=0, peg_op=undef,  ignore_cas
 		: len(operands) < 2?
 			undef
 		: 
-			_match_parsed_peg(string, peg, string_pos, concat(opcode, _slice(operands, 1)), ignore_case=ignore_case, string_code=string_code )
+			_match_parsed_peg(string, peg, string_pos, concat(opcode, slice(operands, 1)), ignore_case=ignore_case, string_code=string_code )
 	: opcode == "sequence"?
 		let( first = _match_parsed_peg(string, peg, string_pos, operands[0], ignore_case=ignore_case, string_code=string_code ) )
 		first == undef?
@@ -141,7 +141,7 @@ function _match_parsed_peg( string, peg, string_pos=0, peg_op=undef,  ignore_cas
 		: len(operands) == 1?
 			first
 		: 
-			let( rest = _match_parsed_peg(string, peg, first[_POS], concat(opcode, _slice(operands, 1)), ignore_case = ignore_case) )
+			let( rest = _match_parsed_peg(string, peg, first[_POS], concat(opcode, slice(operands, 1)), ignore_case = ignore_case) )
 			rest == undef?
 				undef
 			: is_string(first[_PARSED][0]) && is_string(rest[_PARSED][0])?
@@ -334,7 +334,7 @@ function _get_rule_index(rule, indexer) =
 function _index_peg_op_refs(peg_op, indexer) = 
 	let(
 			opcode = peg_op[0],
-			operands = _slice(peg_op, 1)
+			operands = slice(peg_op, 1)
 		)
 	peg_op == str(peg_op)?
 		peg_op
@@ -347,7 +347,7 @@ function _index_peg_op_refs(peg_op, indexer) =
 // return an index to the ref items in the "peg"
 function _index_peg_refs(peg) = 
 	// first form a vector of all of the rules in the peg
-	let ( rules = [for (rule = _slice(peg, 1)) rule[1] ] )
+	let ( rules = [for (rule = slice(peg, 1)) rule[1] ] )
 
 	_index_peg_op_refs(peg, rules);
 
@@ -906,6 +906,7 @@ function _is_variable_safe(code) =
 	  _is_in_range(code, _ASCII_LOWER_A, _ASCII_LOWER_Z) ||
 	  chr(code) == "_";
 
+
 function equals(this, that, ignore_case=false) = 
 	ignore_case?
 		lower(this) == lower(that)
@@ -1046,7 +1047,7 @@ function _parse_float(sections)=
 
 
 function join(strings, delimeter="") = 
-	strings == undef?
+	strings == undef?	
 		undef
 	: strings == []?
 		""
@@ -1080,33 +1081,44 @@ function _join(strings, index, delimeter) =
 //   return undef if end is not defined
 //
 
+// return start=start
+//  unless start is negative then
+//  return the "firstindex" by counting back from the end
+//  of the array
+function firstindex( lenarray, start ) =
+	start < 0 ?
+		lenarray+start // start is counted back from the end
+	:
+		start
+	;
 //
-function lastindex( array, end ) =
-	end >= len(array) ? len(array)-1 : end;
+function lastindex( lenarray, end ) =
+	end < 0 ?
+		lenarray+end
+	: end >= lenarray ?
+		lenarray-1
+	: end;
 
-function _slice(array, start=0, end=-1) =
+function slice( vector, start=0, end=-1 ) =
+	let( lenarr = len(vector) )
+
 	is_undef( array ) || ! is_list( array ) ?
 		undef
 	: array == [] ?
 		[]
 	: is_undef( start ) || is_undef( end ) ?
 		undef
-	: start >= len(array)?
+	: start >= lenarray?
 		[] // return a null vector as we are off the end of the "array"
-	: start < 0?
-		// with negative "start" we are subtracting, thus 
-		//  slicing from the END of the array
-		_slice(array, len(array)+start, lastindex( array, end ))
-	: end < 0?
-		// negative "end" means we process from "start"
-		//  to "end" positions back from the end
-		_slice(array, start, len(array)+end)
-
-    : start > end && start >= 0 && end >= 0?
+	: start > end ?
 		// we need to swap start and end positions
-        _slice(array, end, lastindex( array, start )) // recurse starting at position "end"
+    	_slice( array, firstindex( lenarr, end ),   lastindex( array, start ) )
 	: 
-        [for (i=[start:lastindex( array, end )]) array[i]]
+        _slice( array, firstindex( lenarr, start ), lastindex( array, end ) )
+	;
+
+function _slice( array, start, end ) =
+    [for( i=[start:end] ) array[i] ]
 	;
 
 
