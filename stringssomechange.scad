@@ -1046,7 +1046,7 @@ function _parse_float(sections)=
 
 
 function join(strings, delimeter="") = 
-	strings == undef?
+	strings == undef?	
 		undef
 	: strings == []?
 		""
@@ -1081,8 +1081,20 @@ function _join(strings, index, delimeter) =
 //
 
 //
-function lastindex( array, end ) =
-	end >= len(array) ? len(array)-1 : end;
+function firstindex( lenarray, start ) =
+	start < 0 ?
+		lenarray+start
+	: start >= lenarray ?
+		lenarray-1
+	: end;
+//
+function lastindex( lenarray, end ) =
+	end < 0 ?
+		lenarray+end
+	: end >= lenarray ?
+		lenarray-1
+	: end;
+
 
 function _slice(array, start=0, end=-1) =
 	is_undef( array ) || ! is_list( array ) ?
@@ -1093,14 +1105,6 @@ function _slice(array, start=0, end=-1) =
 		undef
 	: start >= len(array)?
 		[] // return a null vector as we are off the end of the "array"
-	: start < 0?
-		// with negative "start" we are subtracting, thus 
-		//  slicing from the END of the array
-		_slice(array, len(array)+start, lastindex( array, end ))
-	: end < 0?
-		// negative "end" means we process from "start"
-		//  to "end" positions back from the end
-		_slice(array, start, len(array)+end)
 
     : start > end && start >= 0 && end >= 0?
 		// we need to swap start and end positions

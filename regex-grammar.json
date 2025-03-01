@@ -1,0 +1,182 @@
+// rx_peg with open clos Paren etc to dodge highlighting issues in editor
+_rx_peg = 
+_index_peg_refs(
+	["grammar",
+		["private_rule", "operation",
+			["sequence",
+				["choice",
+					["ref", "choice"],
+					["ref", "sequence"],
+					["ref", "postfix"],
+				],
+				// ["negative_lookahead", ["wildcard"]],
+			]
+		],
+		["private_rule", "postfix",
+			["choice",
+				["ref", "many_to_many"],
+				["ref", "one_to_many"],
+				["ref", "zero_to_many"],
+				["ref", "zero_to_one"],
+				["ref", "primitive"]
+			],
+		],
+
+		//BINARY OPERATIONS
+		["rule", "choice",
+			["sequence",
+				["choice", 
+					["ref", "sequence"],
+					["ref", "postfix"]
+				],
+				["one_to_many",
+					["sequence",
+						["private", ["literal", "|"]],
+						["choice", 
+							["ref", "sequence"],
+							["ref", "postfix"]
+						],
+					]
+				]
+			]
+		],
+		["rule", "sequence",
+			["sequence",
+				["ref", "postfix"],
+				["one_to_many",
+					["ref", "postfix"],
+				]
+			]
+		],
+
+		["rule", "positive_lookahead",
+			["sequence",
+				["private", ["literal", str( openParen, "?=" ) ]],	
+				["ref", "operation"],
+				["private", ["literal", closParen ]],
+			]
+		],
+		["rule", "negative_lookahead",
+			["sequence",
+				["private", ["literal", str( openParen, "?!" ) ]],
+				["ref", "operation"],
+				["private", ["literal", closParen ]],
+			]
+		],
+
+		//UNARY POSTFIX OPERATIONS
+		["rule", "one_to_many",
+			["sequence",
+				["ref", "primitive"],
+				["private", ["literal", "+"]]
+			]
+		],
+		["rule", "zero_to_many",
+			["sequence",
+				["ref", "primitive"],
+				["private", ["literal", "*"]]
+			]
+		],
+		["rule", "zero_to_one",
+			["sequence",
+				["ref", "primitive"],
+				["private", ["literal", "?"]]
+			]
+		],
+		["rule", "many_to_many",
+			["sequence",
+				["ref", "primitive"],
+				["private", ["literal", openBrace]],
+				["character_set_shorthand", "d"],
+				["zero_to_one",
+					["sequence",
+						["private", ["literal", ","]],
+						["character_set_shorthand", "d"],
+					],
+				],
+				["private", ["literal", closBrace]],
+			]
+		],
+
+		//PRIMITIVES
+		["private_rule", "primitive",
+			["choice",
+				["ref", "start"],
+				["ref", "end"],
+				["ref", "wildcard"],
+				["ref", "character_set_shorthand"],
+				["ref", "negative_character_set"],
+				["ref", "positive_character_set"],
+				["ref", "negative_lookahead"],
+				["ref", "positive_lookahead"],
+				["sequence",
+					["private", ["literal", openParen]],
+					["ref", "operation"],
+					["private", ["literal", closParen]],
+				],
+				["ref", "literal"],
+			],
+		],
+
+		["rule", "start",
+			["private", ["literal", "^"]],
+		],
+		["rule", "end",
+			["private", ["literal", "$"]],
+		],
+		["rule", "wildcard",
+			["private", ["literal", "."]],
+		],
+		["rule", "literal", 
+			["negative_character_set", 
+				"{","}","[","]","(",")", 
+				"|","*","+","?",".","\\",".",
+				"^","$",
+			],
+		],
+		["rule", "positive_character_set",
+			["sequence",
+				["private", ["literal", openBrack]],
+				["one_to_many",
+					["choice",
+						["ref", "character_range"],
+						["ref", "character_set_shorthand"],
+						["ref", "character_literal"]
+					]
+				],
+				["private", ["literal", closBrack]],
+			]
+		],
+		["rule", "negative_character_set",
+			["sequence",
+				["private", ["literal", str( openBrack, "^" ) ]],
+				["one_to_many",
+					["choice",
+						["ref", "character_range"],
+						["ref", "character_set_shorthand"],
+						["ref", "character_literal"]
+					]
+				],
+				["private", ["literal", closBrack]],
+			]
+		],
+		["rule", "character_literal",
+			["negative_character_set", closBrack]
+		],
+		["rule", "character_range",
+			["sequence",
+				["character_set_shorthand", "w"],
+				["private", ["literal", "-"]],
+				["character_set_shorthand", "w"],
+			],
+		],
+		["rule", "character_set_shorthand",
+			["sequence", 
+				["private", ["literal", "\\"]],
+				["positive_character_set",
+					"s","S","d","D","w","W", "\\", closBrack, openParen, closParen
+				]
+			]
+		],
+	]
+);
