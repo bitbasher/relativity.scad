@@ -1,8 +1,300 @@
-include <peg.scad>
+include <strings.scad>
+include <unit_test.scad>
+
+
+
+echo( "testing tokenize: default is ignore_space=true " );
+assert( tokenize(" ") == [] );
+assert( tokenize(footest)[0] == "foo" );
+assert( tokenize(footest)[1] == "(" );
+assert( tokenize(footest)[2] == "1" );
+assert( tokenize(footest)[3] == "," );
+assert( tokenize(footest)[4] == "bar2" );
+assert( tokenize(footest)[5] == ")" );
+assert( tokenize(footest)[6] == undef );
+
+echo( "testing tokenize: with ignore_space=false " );
+assert( tokenize(" ", ignore_space=false) == [" "] );
+tokenlist = tokenize(footest, ignore_space=false);
+//echo( tokenlist );
+assert( tokenlist == ["foo", "  ", "(", "1", ",", " ", "bar2", ")" ] );
+assert( tokenlist[8] == undef );
 
 
 
 
+//testing PEG related functions, moved here from strings.scad
+//
+echo( "testing _parse_rx:" );
+echo( "atomic operations" );
+assert( _parse_rx("a?") == ["zero_to_one", ["literal", "a"]] );
+assert( _parse_rx("a*") == ["zero_to_many", ["literal", "a"]] );
+assert( _parse_rx("a+") == ["one_to_many", ["literal", "a"]] );
+
+assert( _parse_rx( "foo" ) 
+    == ["sequence", 
+	  	["literal", "f"],
+     	["literal", "o"],
+    	["literal", "o"]
+ 	   ] 
+	);
+
+assert( _parse_rx("a|b")
+    == ["choice", ["literal", "a"], ["literal", "b"] ] 
+	);
+     
+echo( "variable repetition" );
+assert( _parse_rx(".{3}") == ["many_to_many", ["wildcard"], "3"] );
+assert( _parse_rx(".{3,5}") == ["many_to_many", ["wildcard"], "35"] );
+
+echo( "charsets" );
+assert( _parse_rx(".[abcdef]")
+      == ["sequence", ["wildcard"],
+     		["positive_character_set",
+     			["character_literal", "a"],
+     			["character_literal", "b"],
+     			["character_literal", "c"],
+     			["character_literal", "d"],
+     			["character_literal", "e"],
+     			["character_literal", "f"]
+     		]
+     	]
+		);
+
+assert( _parse_rx("[a-z]")
+	== ["positive_character_set",
+		["character_range", "az"]
+	   ]
+	);
+
+assert( _parse_rx(".[^abcdef]")
+      == ["sequence", ["wildcard"],
+     		["negative_character_set", 
+     			["character_literal", "a"],
+     			["character_literal", "b"],
+     			["character_literal", "c"],
+     			["character_literal", "d"],
+     			["character_literal", "e"],
+     			["character_literal", "f"]
+     		]
+     	]
+		);
+assert( _parse_rx("^[a-z]") 
+      == ["sequence",
+	  		["start"],
+     		["positive_character_set", ["character_range", "az"]]
+     	 ]
+		);
+
+echo( "escape characters" );
+assert( _parse_rx("\\d") 	== ["character_set_shorthand", "d"] );
+assert( _parse_rx("\\d\\d")
+      == ["sequence", 
+     		["character_set_shorthand", "d"],
+     		["character_set_shorthand", "d"]
+     	]
+		);
+assert( _parse_rx("\\d?") 	== ["zero_to_one", ["character_set_shorthand", "d"]] );
+assert( _parse_rx("\\s\\d?") 
+      == ["sequence", 
+     		["character_set_shorthand", "s"],
+     		["zero_to_one", ["character_set_shorthand", "d"]]
+     	] );
+assert( _parse_rx("\\d?|b*\\d+")
+      == ["choice", 
+     		["zero_to_one", ["character_set_shorthand", "d"]],
+     		["sequence", 
+     			["zero_to_many", ["literal", "b"]],
+     			["one_to_many", ["character_set_shorthand", "d"]]
+     		]
+     	] );
+
+assert( _parse_rx("a|\\(bc\\)")
+      == ["choice", 
+     		["literal", "a"],
+     		["sequence", 
+				["character_set_shorthand", openParen],
+     			["literal", "b"],
+     			["literal", "c"],
+     			["character_set_shorthand", closParen]
+			]
+		]
+		);
+
+echo( "order of operations" );
+assert( _parse_rx("ab?")
+      == ["sequence", 
+      		["literal", "a"],
+     		["zero_to_one",
+			["literal", "b"]]
+     	] 
+		);
+assert( _parse_rx("(ab)?")
+      == ["zero_to_one", 
+      		["sequence", 
+      			["literal", "a"],
+     			["literal", "b"]
+     		]
+     	] 
+		);
+assert( _parse_rx("a|b?")
+      == ["choice", 
+      		["literal", "a"],
+     		["zero_to_one", ["literal", "b"]]
+     	]
+		);
+assert( _parse_rx("(a|b)?")
+      == ["zero_to_one", 
+      		["choice", 
+      			["literal", "a"],
+     			["literal", "b"]
+     		]
+     	] 
+		);
+assert( _parse_rx("a|bc") 
+      == ["choice", 
+      		["literal", "a"],
+     		["sequence", 
+     			["literal", "b"],
+     			["literal", "c"]
+     		]
+     	] );
+assert( _parse_rx("ab|c")
+      == ["choice", 
+      		["sequence", 
+      			["literal", "a"],
+     			["literal", "b"]
+     		],
+     		["literal", "c"]
+     	] );
+assert( _parse_rx("(a|b)c")
+      == ["sequence", 
+      		["choice", 
+      			["literal", "a"],
+     			["literal", "b"]
+     		],
+     		["literal", "c"]
+     	] );
+assert( _parse_rx("a|(bc)")
+      == ["choice", 
+     		["literal", "a"],
+     		["sequence", 
+     			["literal", "b"],
+     			["literal", "c"]
+     		]
+     	] );
+
+assert( _parse_rx("a?|b*c+")
+      == ["choice", 
+      		["zero_to_one",
+				["literal", "a"]
+			],
+     		["sequence", 
+     			["zero_to_many", 
+					["literal", "b"]
+				],
+     			["one_to_many", 
+					["literal", "c"]
+				]
+     		]
+     	] 
+	);
+assert( _parse_rx("a?|b*c+d|d*e+")
+      == ["choice", 
+      		["zero_to_one", ["literal", "a"]],
+     		["sequence", 
+     			["zero_to_many", ["literal", "b"]],
+     			["one_to_many", ["literal", "c"]],
+     			["literal", "d"]
+     		],
+     		["sequence", 
+     			["zero_to_many", ["literal", "d"]],
+     			["one_to_many", ["literal", "e"]]
+     		]
+     	]
+	);
+
+echo( "edge cases" );
+assert( _parse_rx("a") == ["literal", "a"] );
+assert( _parse_rx("")  );
+assert( _parse_rx(undef) == undef );
+
+echo( "invalid syntax" );
+//assert( _parse_rx( "((()))" ) );
+//assert( _parse_rx( "(()))"  ) );
+//assert( _parse_rx( "((())"  ) );
+//assert( _parse_rx( "a?*+"   ) );
+assert( _parse_rx( "[^a-z]*"  ) );
+
+echo( "testing _parse_rx" );
+assert( _parse_rx( "[foba]{2,5}") );
+assert( _parse_rx( "[foba]{6,9}")  );
+assert( _parse_rx( "[fobar]{2,6}") );
+assert( _parse_rx( "[fobar]{2,9}") );
+assert( _parse_rx( "[a-z]*") );
+assert( _parse_rx( "[f-o]*") );
+assert( _parse_rx( "[^a-z]*")  );
+assert( _parse_rx( "[^f-o]*") );
+
+//echo( "[foba]{2,5}", _parse_rx( "[foba]{2,5}") );
+
+fivetabs = "\t\t\t\t\t";
+// tabs = substring( fivetabs, 0, 1 );
+
+module printNestedList( data, pos=0, tablevel=0 )
+	let( tabs = substring( fivetabs, 0, tablevel ) )
+
+	for( s = data )
+		if( is_list( s ) )
+			printNestedList( s, pos=pos+1, tablevel=tablevel+1 );
+		else
+			echo( str( tabs,s ) );
+
+/*
+echo( "\n\t[foba]{2,5}" );
+printNestedList( _parse_rx( "[foba]{2,5}") );
+
+echo( "\n\t[foba]{6,9}" );
+printNestedList( _parse_rx( "[foba]{6,9}") );
+
+echo( "\n\t[fobar]{2,6}" );
+printNestedList( _parse_rx( "[fobar]{2,6}") );
+
+echo( "\n\t[fobar]{2,9}" );
+printNestedList( _parse_rx( "[fobar]{2,9}") );
+
+echo( "\n\t[a-z]*" );
+printNestedList( _parse_rx( "[a-z]*") );
+
+echo( "\n\t[f-o]*" );
+printNestedList( _parse_rx( "[f-o]*") );
+
+echo( "\n\t[^a-z]*" );
+printNestedList( _parse_rx( "[^a-z]*")  );
+
+echo( "\n\t[^f-o]*" );
+printNestedList( _parse_rx( "[^f-o]*") );
+ */
+
+echo( "testing _match_regex" );
+assert( _match_regex("foobarbaz", "[foba]{2,5}") == 5 );
+assert( _match_regex("foobarbaz", "[foba]{6,9}") == undef );
+assert( _match_regex("foobarbaz", "[fobar]{2,6}") == 6 );
+assert( _match_regex("foobarbaz", "[fobar]{2,9}") == 8 );
+assert( _match_regex("foobarbaz", "[a-z]*") == 9 );
+assert( _match_regex("foobarbaz", "[f-o]*") == 3 );
+assert( _match_regex("012345", "[^a-z]*") == 6 );
+
+//echo( _match_regex( "foobarbaz", "[^a-z]*" ) );
+
+assert( _match_regex("foobarbaz", "[^a-z]*") == 0 );
+echo( _match_regex("foo13bar,,baz", "[^a-z]*") );
+
+echo( _match_regex( "foobarbaz", "[^f-o]*" ) ); // expect 4 get 0
+echo( _match_regex( "foobarbaz", "fo" ) ); // get 2
+echo( _match_regex( "foobarbaz", "ba" ) ); // get undef
+
+assert( _match_regex("foobarbaz", "[^f-o]*") == 0 ); // **BUG ? not right
 
 
 
@@ -360,20 +652,3 @@ echo(_unit_test(
 	]
 ));
 
-
-
-echo(_unit_test(
-    "grammar",
-	[
-    _match_parsed_peg("ab", undef, 0, 
-		["grammar",
-			["rule", "A", 
-				["sequence",
-					["literal", "a"],
-					["ref", 2]
-				]
-			],
-			["rule", "B", ["literal", "b"]]
-		]), ["A", "a", ["B", "b"]]
-    ]
-));
