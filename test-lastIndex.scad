@@ -22,6 +22,25 @@ function testAbs( end ) =
 //echo( testAbs(0) );
 //echo( testAbs(4) );
 
+function maxOf( first,second) = 
+    is_undef(first) || is_undef(second) ?
+        undef
+    : ! is_num(first) && ! is_num(second) ?
+        undef
+    : first > second ?
+        first
+    : second
+    ;
+
+function minOf( first,second) = 
+    is_undef(first) || is_undef(second) ?
+        undef
+    : ! is_num(first) && ! is_num(second) ?
+        undef
+    : first < second ?
+        first
+    : second
+    ;
 
 function lastindex( lenArray, end ) =
     let( absend = end < 0 ? -end : end )
@@ -34,8 +53,7 @@ function lastindex( lenArray, end ) =
     : end
     ;
 
-
-echo( lastindex( tv8len, -tv8last-2 ) );
+echo( lastindex( tv8len, -50 ) );
 echo( lastindex( tv8len, -tv8last-1 ) );
 echo( lastindex( tv8len, -tv8last ) );
 echo( lastindex( tv8len, -5 ) );
@@ -43,4 +61,28 @@ echo( lastindex( tv8len, -1 ) );
 echo( lastindex( tv8len, 0 ) );
 echo( lastindex( tv8len, 5 ) );
 echo( lastindex( tv8len, tv8last+1 ) );
-echo( lastindex( tv8len, tv8last+2 ) );
+echo( lastindex( tv8len, 50 ) );
+
+
+function liminmax( lenArray, end ) =
+    let( 
+        lastInd = lenArray-1, 
+        absend = end < 0 ? -end : end
+        )
+    end >= 0 ?
+        // end is positive
+        minOf(lastInd, end)
+    :   // end is negative
+        maxOf( 0,lastInd+end )
+    ;
+
+
+echo( liminmax( tv8len, -50 ) );
+echo( liminmax( tv8len, -tv8last-1 ) );
+echo( liminmax( tv8len, -tv8last ) );
+echo( liminmax( tv8len, -5 ) );
+echo( liminmax( tv8len, -1 ) );
+echo( liminmax( tv8len, 0 ) );
+echo( liminmax( tv8len, 5 ) );
+echo( liminmax( tv8len, tv8last+1 ) );
+echo( liminmax( tv8len, 50 ) );
