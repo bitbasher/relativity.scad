@@ -43,5 +43,5 @@ function l(string) =
                 chr(c)
     ] )
     ;
-echo( c=l( "XXXfGdFG" ) );
+echo( c=l( "XX  nnnm, NNMM..>> XX''f@#$% GdFG  " ) );
     

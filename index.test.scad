@@ -11,13 +11,12 @@ pttt= "    pad ded text    ";
 
 nullString = "";
 
-tsEnd = len(ts)-1;
-tsQty = len(ts);
+lastTS = len(ts)-1;
+lenTS = len(ts);
 
-numbers = "some 123 numb 15.5 ers, a-23nd pun5556; stations99";
 
 function _match(string, pattern, pos ) = 
-    starts_with(string, pattern, pos )? 
+    starts_with(string, pattern, pos ) ? 
         pos+len(pattern) 
     : 
         undef
@@ -25,26 +24,37 @@ function _match(string, pattern, pos ) =
     
 
 echo( ts=ts );
+echo( "testing _match" );
+echo( m=_match( ts, "", 0 ) );          // 0 - starts with ""
+echo( m=_match( ts, " ", 0 ) );         // undef
+echo( m=_match( "    ", " ", 0 ) );     // 1 - starts with " "
+echo( m=_match( ts, " ", 4 ) );         // 5 - blank after "this"
+echo( m=_match( ts2, "  ", 4 ) );       // 6 - "  " after "this"
+echo( m=_match( ts2, "this  ", 0 ) );   // 6  - starts with "this  "
+echo( m=_match( "testing", "t", 20 ) ); // undef - pos past end of string
 
-echo( m=_match( ts, "", 0 ) ); // 0 - starts with ""
-echo( m=_match( ts, " ", 0 ) ); // undef - does not begin with " "
-echo( m=_match( "    ", " ", 0 ) ); // 1 - starts with " "
-echo( m=_match( ts, "  ", 0 ) ); // undef - does not start with " "
-echo( m=_match( ts2, "  ", 0 ) ); //undef - does not start with " "
-echo( m=_match( ts2, "this  ", 0 ) ); // 6  - starts with "this  "
+echo( "testing _match_set" );
+echo( ms=_match_set( ts, "", 0 ) );     // 0 - starts with ""
+echo( ms=_match_set( ts, "x", 0 ) );    // 0 - does not begin with " "
+echo( ms=_match_set( "    ", " ", 0 ) ); // 1 - starts with " "
+echo( ms=_match_set( ts, "  ", 4 ) );   // 5 - " " after "test"
+echo( ms=_match_set( ts2, "  ", 4 ) );  // 6 - "  " after "test"
+echo( ms=_match_set( ts2, "this  ", 0 ) ); // 6  - starts with "this  "
+echo( ms=_match_set( "testing", "test", 0 ) ); // 4 - starts with "test"
 
-echo( m=_match( "testing", "test", 0 ) ); // 4 - starts with "test"
 
-echo( index1 = _index_of_first( ts, " ") );
-echo( index1 = _index_of_first( ts2, " ") );
-echo( index1 = _index_of_first( ts, "  ") );
-echo( index1 = _index_of_first( ts2, "  ") );
+echo( ts=ts );
+echo( ts2=ts2 );
+echo( index1 = _index_of_first( ts, " " ) );
+echo( index1 = _index_of_first( ts2, " " ) );
+echo( index1 = _index_of_first( ts, "  " ) );
+echo( index1 = _index_of_first( ts2, "  " ) );
 echo( pt = pt);
 echo( index1 = _index_of_first( pt, " ") );
 echo( ptt=ptt );
-echo( index1 = _index_of_first( ptt, " ") );
-echo( index1 = _index_of_first( ptt, "  ") );
-echo( index1 = _index_of_first( pttt, "  ") );
+echo( ptt = _index_of_first( ptt, " ") ); // [0,3]
+echo( ptt = _index_of_first( ptt, "  ") ); // [0,3]
+echo( pttt = _index_of_first( pttt, "  ") ); // [0,4]
 
 echo( indexr = _index_of_recurse( ts, " ", _index_of_first(ts, " " ), pos=0 ) );
 echo( ts2 = ts2 );

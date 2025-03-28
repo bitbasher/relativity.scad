@@ -13,6 +13,21 @@ function vectors_version_str() =
 
 // Vector operations
 
+function is_not_list( list ) =
+	is_undef( list ) || ! is_list( list );
+
+
+// return true if the given vector undef or
+//  not a list/vector 
+function is_not_vector(vector) = 
+	is_not_list( vector ) ;
+
+
+// return true if the given vector is empty
+//  but it must exist or we return undef
+function vec_is_empty(vector) = 
+	is_not_list( vector ) ? undef : vector == [] ;
+
 
 function maxOf( first,second) = 
     is_undef(first) || is_undef(second) ?
@@ -102,7 +117,7 @@ function startindex( lenArray, start ) =
 /* 
 SLICE
 Returns a section of the given array (list) from the index
-"start" to the index "end"
+"start" to the index "end", with variations.
 
 function slice(array, start=0, end=-1) =
     _slice(array, start=start, end=end);
