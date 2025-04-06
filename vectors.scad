@@ -9,7 +9,13 @@ function vectors_version_str() =
     _vectors_version[2], ".",
     _vectors_version[3]
     );
+function vectors_version_num() =
+    _vectors_version.x  * 100000 +
+    _vectors_version.y * 100 +
+    _vectors_version.z +
+    _vectors_version[3] / 10 ;
     
+include <numbers.scad>
 
 // Vector operations
 
@@ -28,26 +34,6 @@ function is_not_vector(vector) =
 function vec_is_empty(vector) = 
 	is_not_list( vector ) ? undef : vector == [] ;
 
-
-function maxOf( first,second) = 
-    is_undef(first) || is_undef(second) ?
-        undef
-    : ! is_num(first) && ! is_num(second) ?
-        undef
-    : first > second ?
-        first
-    : second
-    ;
-
-function minOf( first,second) = 
-    is_undef(first) || is_undef(second) ?
-        undef
-    : ! is_num(first) && ! is_num(second) ?
-        undef
-    : first < second ?
-        first
-    : second
-    ;
 
 /* 
 LASTINDEX
@@ -99,7 +85,7 @@ function lastindex( lenArray, end ) =
         // end is positive
         minOf(lastInd, end)
     :   // end is negative
-        maxOf( 0,lastInd+end )
+        max( 0,lastInd+end )
     ;
 
 //  inputs are not checked
@@ -110,7 +96,7 @@ function startindex( lenArray, start ) =
         // start is positive
         minOf(lastInd, start)
     :   // start is negative
-        maxOf( 0,lastInd+start )
+        max( 0,lastInd+start )
     ;
 
 
@@ -174,3 +160,14 @@ function _slice_exec( array, start, end ) =
 function _slice_deep( array, start, end ) =
     [for (i=[start:end]) array[i]]
 	;
+
+// return true if all elements of the two given vectors
+//  match
+function vec_equals(this, that, ignore_case=false) = 
+	is_not_list(this) || is_not_list(that) ?
+		undef
+	: len(this) != len(that) ?
+		false
+	: all( [ for( i=[0:len(this)] ) this[i] == that[i] ] )
+	;
+

@@ -4,19 +4,30 @@ include <vectors.scad>
 include <strings.scad>
 include <unit_test.scad>
 
-echo(	"testing _slice()" );
+echo( "testing _slice()" );
 
 tv8last = 7;
 tv8 = [ for( i=[0:tv8last] ) i ]; // fill a test array
 tv8len = len(tv8);
 tv8start = 0;
 
+
+echo( "\tis_not_list" );
+assert( ! is_not_list( [1,2,3] ) );
+assert( ! is_not_list( ["1","2","3"] ) );
+assert( ! is_not_list( [] ) );
+assert( is_not_list( "string" ) );
+assert( is_not_list( 42 ) );
+assert( is_not_list( undefList ) )
+
+
+
 echo(	"testing part1: startindex([1,2,3,4])" );
-//echo( startindex( 4, -50 ));   // 0
-//echo( startindex( 4, -1 ));    // 2
-//echo( startindex( 4, 0 ));     // 0
-//echo( startindex( 4, 1 ));     // 1
-//echo( startindex( 4, 50 ));    // 3
+echo( startindex( 4, -50 ));   // 0
+echo( startindex( 4, -1 ));    // 2
+echo( startindex( 4, 0 ));     // 0
+echo( startindex( 4, 1 ));     // 1
+echo( startindex( 4, 50 ));    // 3
 
 assert( startindex( tv8len, -50 ) == 0);
 assert( startindex( tv8len, -tv8last-1 ) == 0);
@@ -145,3 +156,13 @@ assert(  _slice( tv8, 0,  -1 ) == tv6 );
 assert(  _slice( tv8, end=-1 ) == tv6 );
 assert(  _slice( tv8, end=-tv8last ) == [0] );
 assert(  _slice( tv8, 0, -tv8len )   == [0] );
+
+
+echo("testing vec_equals:" );
+assert( is_undef( vec_equals( digits, [] ) ) );
+assert( is_undef( vec_equals( [], digits ) ) );
+// echo( cd = code_digits );
+assert( vec_equals( code_digits,  [48, 49, 50, 51, 52, 53, 54, 55, 56, 57] ) );
+assert( vec_equals( [], [] ) );
+assert( ! vec_equals( [0,1,2], [0]) );
+

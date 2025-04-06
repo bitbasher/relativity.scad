@@ -1,14 +1,18 @@
 _strings_version = 
-	[2022, 11, 5];
+	[2025, 03, 29, 1];
 function strings_version() =
 	_strings_version;
 function strings_version_num() =
-	_strings_version.x * 10000 + _strings_version.y * 100 + _strings_version.z;
+	_strings_version.x * 10000 + 
+	_strings_version.y * 100 +
+	_strings_version.z +
+	_strings_version[3] / 10 ;
 
 include <vectors.scad>
 include <logic.scad>
 include <newsplit.scad>
-
+include <numbers.scad>
+include <recursion.scad>
 
 _ASCII_SPACE 	= 32;
 _ASCII_0 		= 48;
@@ -18,7 +22,7 @@ _ASCII_UPPER_Z 	= _ASCII_UPPER_A + 25;
 _ASCII_LOWER_A 	= 97;
 _ASCII_CONVERT  = 97-65;
 _ASCII_LOWER_Z 	= _ASCII_LOWER_A + 25;
-_ASCII_UNDER    = chr( "_" );
+_ASCII_UNDER    = ord( "_" );
 
 _CHAR_SPC = " ";	// blank
 _CHAR_TAB = "\t";	// tabchar
@@ -56,10 +60,10 @@ function ascii_code( string ) =
 	;
 
 
-// return "true" if the characters of "string" starting from the 
-//  the given position, "pos", match the
-//  given reference string, "refString"
-//  ignore_case has the usual function
+// return "true" if the characters of "string", starting from the 
+//  the given position, "pos", match the given reference string,
+//  "refString".
+// "ignore_case" has the usual meaning
 //
 function starts_with(string, refString, pos=0, ignore_case=false ) =
 	is_not_string( string ) || is_not_string( refString ) ?
@@ -104,9 +108,6 @@ function ends_with( string, refString, ignore_case=false ) =
 function is_not_string( string ) =
 	is_undef( string ) || ! is_string( string );
 
-function is_not_num( num ) =
-	is_undef( num ) || ! is_num( num );
-
 
 // return true if the given string is empty
 //  but it must exist or we return undef
@@ -120,6 +121,7 @@ function str_is_empty(string) =
 
 // return true when given string is undefined, OR
 //  is empty, meaning the null string ( "" )
+//  or undef if the input is not a string
 function str_is_undef_or_empty(string) = 
 	! is_string( string ) ?
 		undef
@@ -139,9 +141,9 @@ function str_is_null_or_allspaces(string) =
 // NOTE that this is not testing for ALL whitespace characters in
 //  _WHITESPACE, only for _CHAR_SPC ( " " )
 function str_is_allspaces(string) = 
-	! is_string( string ) ?
+	is_not_string( string ) ?
 		undef
-	: len( string ) <= 0 ?
+	: str_is_empty( string ) ?
 		false
 	: len([for (char=string)
 			if(char != _CHAR_SPC ) char]
@@ -166,12 +168,18 @@ function trim(string) =
 	;
 
 
+// compare the given pattern against the given string at pos
+// If it matches return the position in string AFTER the pattern.
+// starts_with() does all the checking for correct inputs
+//  and will return "false" if pattern=="" or the pattern
+//  does not match .. but functions using _match() use
+//  the on_coalesce() recursion function so all cases of
+//  failure to match are coerced to undef
 function _match(string, pattern, pos, ignore_case=false ) = 
-    starts_with(string, pattern, pos, ignore_case=ignore_case) ? 
-        pos+len(pattern) 
-    : 
-        undef
-    ;
+    let( result = starts_with(string, pattern, pos, ignore_case=ignore_case) )
+	is_undef( result ) || ! result ?
+		undef
+    : pos+len(pattern) ;
     
 
 /*
@@ -192,12 +200,11 @@ function _match(string, pattern, pos, ignore_case=false ) =
 	 the matched set.
  */
 function _match_set( string, set, pos=0 ) =
-	//let( lenStr = len( string ) ) // maybe should be last index?
+	let( lenStr = len( string ) ) // maybe should be last index?
 
-	//pos >= lenStr ? // we have recursed in with a pos greater than
-			// the length of the string
-	//	lenStr // we have recursed off the end of the string - return
-	 _is_in_set( string[pos], set )?
+	pos >= lenStr ? // we are past the last char of string
+		lenStr
+	: _is_in_set( string[pos], set ) ?
 		_match_set( string, set, pos+1 )
 	: 
 		pos // index of first char NOT in the set at this level of recursion
@@ -237,26 +244,8 @@ function _is_in_set( char, set, ignore_case=false ) =
 		])
 	;
 
-// all three parameters must be defined numbers
-function code_in_range(code, min_code, max_code) = 
-	is_undef( code ) || ! is_num( code ) ?
-		undef
-	: is_undef( min_code ) || is_undef( max_code ) ?
-		undef
-	: ! is_num( min_code ) || ! is_num( max_code ) ?
-		undef
-	: _code_in_range(code, min_code, max_code);
-
-// function with no checking
-function _code_in_range(code, min_code, max_code) =
-	min_code > max_code ?
-		code >= max_code && code <= min_code
-	:
-		code >= min_code && code <= max_code
-	;
-
 function _is_variable_safe(code) = 
-	code == undef || ! is_num( code ) ?
+	is_not_num( code ) ?
 		undef
 	: _code_in_range(code, _ASCII_0, _ASCII_9) ||
 	  _code_in_range(code, _ASCII_UPPER_A, _ASCII_UPPER_Z) ||
@@ -279,14 +268,6 @@ function _str_equals(this, that, ignore_case=false) =
 		_lower(this) == _lower(that)
 	:
 		this==that
-	;
-
-function vec_equals(this, that, ignore_case=false) = 
-	! is_list(this) || ! is_list(that) ?
-		undef
-	: len(this) != len(that) ?
-		false
-	: all( [ for( i=[0:len(this)] ) this[i] == that[i] ] )
 	;
 
 
@@ -458,7 +439,8 @@ function str_between_indecies(string, start, end) =
 		_sub_by_index( string, start, end-1 )
 	;
 
-
+// return the first part of string up to, but not
+//  including the "upto" position
 function before(string, upto=0) = 
 	is_not_string( string ) || is_not_num( upto ) ?
 		undef
@@ -471,8 +453,8 @@ function before(string, upto=0) =
 
 // returns the string AFTER start, so specifically not
 //  including the start character
-// THUS the smallest string index is zero, but the smallest
-//  start position for this function is index=1
+// THUS wheile the smallest index for a string is zero,
+//  the smallest start position for this function is index=1
 function after(string, start=0) =
 	is_not_string( string ) || is_not_num( start ) ?
 		undef
@@ -485,6 +467,8 @@ function after(string, start=0) =
 	
 
 // returns the string STARTING FROM start to end
+//  this is an alternative to after() that can include the
+//  zeroth char in string
 function starting_from( string, start=0 ) =
 	is_not_string( string ) || is_not_num( start ) ?
 		undef
@@ -499,47 +483,84 @@ function starting_from( string, start=0 ) =
 function _sub_by_index( string, start, end ) =
 	str_vector_join( [for ( i=[start:end]) string[i]] );
 
-function parse_int(string, base=10) = 
-	string[0] == "-" ? 
-		-1*_parse_int(string, base, 1) 
+function parse_int(string) = 
+	let( numstr = trim(string) )
+	numstr[0] == "-" ? 
+		-1 * _parse_whole( after( numstr, 0 ) ) 
 	: 
-		_parse_int(string, base);
+		_parse_whole( numstr );
 
-function parse_int_new( string ) = 
-	let(
-		sign = string[0] == "-" ? -1 : 1,
-		start = string[0] == "-" ? 1 : 0
-		)
-	sign * _parse_int( string, start ) 
+function _parse_whole( string, base=10, pow=0, pos=undef ) =
+	is_undef( pos ) ?
+		_parse_whole( string, base=base, pos=len( string )-1 ) 
+	: pos == 0 ?
+		char_to_digit( string[0], base=base ) * base ^ pow
+	:
+		char_to_digit( string[pos], base=base ) * base ^ pow + 
+			_parse_whole( string, base=base, pow=pow+1, pos=pos-1 ) 
 	;
 
-function _parse_int( string, start=0, sum=0 ) = 
-	start >= len(string) ? 
-		sum
-	: 
-		sum + _parse_int( string, i+1, 
-				search( string[i],"0123456789" )[0] * pow( 10 ,len(string)-i-1));
+function char_to_digit( char, base=10 ) =
+	base == 16 ?
+		hexchar_to_digit( char )
+	: base <= 10 ?
+		( ord( char ) - _ASCII_0 )
+	: undef
+	;
 
-function _parse_hex(string, base=16, i=0, sum=0) = 
-	i == len(string) ? 
-		sum
-	: 
-		sum + _parse_hex(string, base, i+1, 
-				search(string[i],"0123456789ABCDEF")[0]*pow(base,len(string)-i-1));
+function hexchar_to_digit( char ) =
+	char >= "0" && char <= "9" ?
+		ord(char) - ord("0")
+	: char >= "A" && char <= "F" ?
+		ord(char) - ord("A") + 10
+	: undef
+	;
 
+function parse_hex( string ) =
+	let( numstr = upper( trim(string) ) )
+	numstr[0] == "-" ? 
+		_parse_whole( after( numstr, 0 ), base=16 ) 
+	: 
+		_parse_whole( numstr, base=16 );
+	;
 
 function parse_float(string) = 
-	string[0] == "-" ? 
-		-1*parse_float(after(string,0))
-	: 
-		_parse_float(split(string, "."));
+	let( numstr = trim(string) )
+	numstr[0] == "-" ? 
+		-1 * parse_float(after(numstr,0))
+	:
+		_split_float( string, _index_of( string, "." ) )
+	;
 
-function _parse_float(sections)=
-    len(sections) == 2?
-        _parse_int(sections[0], 10) + _parse_int(sections[1], 10)/pow(10,len(sections[1]))
+
+function _split_float( string, delims ) = 
+    is_undef(delims) || is_not_list(delims) ?
+        undef
+    : delims == [] ?
+    	_parse_whole( string )
+    : let( numdelims = len(delims) )
+      numdelims != 1 ?
+        undef
+    : let( delim = delims[0] )
+      delim.x == 0 ?
+        // echo( "x", string, delim.y)
+		float_fraction( string, delim.y )
     :
-        _parse_int(sections[0], 10) 
+        //str( "y ", string, " ", delim.x, " ", before( string, delim.x ))
+		_parse_whole( before( string, delim.x ) ) + float_fraction( string, delim.y  )
     ;
+
+
+function float_fraction( string, start, pow=-1 ) =
+    let( laststr = len(string)-1 )
+    start > laststr ? 
+        0
+    : start == laststr ?
+        char_to_digit( string[laststr]  ) * 10 ^ pow
+    : char_to_digit( string[start] ) * 10 ^ pow +
+        float_fraction( string, start+1, pow=pow-1 );
+    ;
+
 
 
 // return a vector of the indexes of the instances of the delimiter
@@ -633,7 +654,7 @@ function _index_of_first(string, delim=" ", pos=0 ) =
 	str_split( "some text", "z" ) ==> ["some text"]
 	as there is no instance of "z" in the string
 	and likewise
-	str_split( "oneword" ) should return ["oneword"] 
+	str_split( "oneword" ) should return ["oneword"]
  */
 function str_split( string, separator=" " ) =
 	is_not_string( string ) ?
@@ -705,10 +726,10 @@ function stringBlanks( qty, i=1 ) =
     : str( " ", stringBlanks( qty, i+1 ) ) ;
 
 
-function str_vector_join( arrayOfStrings, delimeter="") = 
+function str_vector_join( arrayOfStrings, delimeter="" ) = 
 	is_not_list( arrayOfStrings ) ?
 		undef
-	: arrayOfStrings == []?
+	: arrayOfStrings == [] ?
 		""
 	: _str_vector_join(arrayOfStrings, len(arrayOfStrings)-1, delimeter=delimeter );
 
@@ -720,29 +741,4 @@ function _str_vector_join( arrayOfStrings, index, delimeter="") =
 			arrayOfStrings[index]
 			) ;
 
-// unused function as str("2") == str(2)
-function digit_to_char( char ) =
-	is_string( char ) ?
-		char
-	: is_num( char ) ?
-		str( char )
-	: "" ;
 
-// return item if it is valid, else the replacement
-//  this is used during recursion to process along a
-//  list, or string, to return a valid, known item
-//  when an attempt at further recursion fails with
-//  an undef result.
-// This is an alternative to _coalesce_on
-function _null_coalesce( item, replacement ) = 
-	is_undef( item ) ? replacement : item ;
-
-// return value IFF it is valid, else use the fallback
-//  this is used during recursion to process along a
-//  list, or string, to return a valid, known item
-//  when an attempt at further recursion fails with
-//  an a predictable, erroneous result.
-// This is an alternative to _null_coalesce
-function _coalesce_on( value, error, fallback ) = 
-	value == error? fallback : value;
-	

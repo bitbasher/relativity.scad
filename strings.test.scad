@@ -1,5 +1,7 @@
 include <strings.scad>
 
+_TEST_ENABLED_ = false;
+
 footest = "foo  (1, bar2)";
 regex_test = "foooobazfoobarbaz";
 
@@ -18,6 +20,8 @@ digits = "0123456789";
 code_digits = ascii_code(digits);
 numbers = "some 123 numb 15.5 ers, a-23nd pun5556; tations99";
 
+foobar = "!@#$1234foobar@#$1234";
+FOOBAR = "!@#$1234 FOOBAR !@#$1234";
 
 echo( "testing ascii_code" );
 illegalCodes = "\u20AC 10 \u263A"; // UNICODE for 10 euro and a smilie;
@@ -55,7 +59,25 @@ codevect = [for(c=_ASCII) ord(c)];
 
 assert( ascii_code( _ASCII ) == codevect );
 
+echo( MAX_VALUE );
+
 echo( "testing boolean test functions" );
+echo( "\ttesting _is_variable_safe" );
+
+foobar_vector = [
+        ["!", false], ["@", false], ["#", false], ["$", false], ["1", true], 
+        ["2", true],  ["3", true],  ["4", true],  ["f", true],  ["o", true], 
+        ["o", true],  ["b", true],  ["a", true],  ["r", true],  ["@", false], 
+        ["#", false], ["$", false], ["1", true],  ["2", true],  ["3", true], 
+        ["4", true]
+        ];
+// echo( [for(c=foobar) [c,_is_variable_safe( ord(c) ) ]] );
+safe_vector = [for(c=foobar) [c,_is_variable_safe( ord(c) ) ]];
+// echo( safe_vector );
+assert( safe_vector == foobar_vector );
+// echo( _is_variable_safe( ord("_") ) );
+assert( _is_variable_safe( ord("_") ) );
+assert( is_undef( _is_variable_safe( " " ) ) );
 
 echo( "\tis_not_string" );
 assert( ! is_not_string( "xyz" ) );
@@ -65,20 +87,7 @@ assert( is_not_string( [] ) );
 assert( is_not_string( 42 ) );
 assert( is_not_string( undefStr ) );
 
-echo( "\tis_not_num" );
-assert( ! is_not_num( 42 ) );
-assert( ! is_not_num( -2.222 ) );
-assert( is_not_num( "string" ) );
-assert( is_not_num( [] ) );
-assert( is_not_num( undefNum ) );
 
-echo( "\tis_not_list" );
-assert( ! is_not_list( [1,2,3] ) );
-assert( ! is_not_list( ["1","2","3"] ) );
-assert( ! is_not_list( [] ) );
-assert( is_not_list( "string" ) );
-assert( is_not_list( 42 ) );
-assert( is_not_list( undefList ) )
 
 echo( "\tstr_is_empty" );
 assert( ! str_is_empty( "  " ) );
@@ -149,6 +158,60 @@ assert( _sub_by_index( "abc", 0, 0 ) == "a" );
 assert( _sub_by_index( "abc", 1, 1 ) == "b" );
 assert( _sub_by_index( "abc", 2, 2 ) == "c" );
 assert( _sub_by_index( "abc", 1, 2 ) == "bc" );
+
+echo( "testing char_to_digit( char, base=10 ) " );
+assert( char_to_digit( "0" ) == 0 );
+assert( char_to_digit( "1" ) == 1 );
+assert( char_to_digit( "9" ) == 9 );
+
+assert( char_to_digit( "0", base=16 ) == 0 );
+assert( char_to_digit( "1", base=16 ) == 1 );
+assert( char_to_digit( "9", base=16 ) == 9 );
+assert( char_to_digit( "A", base=16 ) == 10);
+assert( char_to_digit( "E", base=16 ) == 14);
+assert( char_to_digit( "F", base=16 ) == 15);
+assert( is_undef( char_to_digit( "Z", base=16 ) ) );
+
+
+echo( "testing _parse_whole( string )" );
+assert( _parse_whole( "0", base=10 ) == 0 );
+assert( _parse_whole( "1" ) == 1 );
+assert( _parse_whole( "9", base=10 ) == 9 );
+assert( _parse_whole( "12" ) == 12 );
+assert( _parse_whole( "120000" ) == 120000 );
+
+assert( _parse_whole( "0", base=16 ) == 0 );
+assert( _parse_whole( "1", base=16 ) == 1 );
+assert( _parse_whole( "9", base=16 ) == 9 );
+assert( _parse_whole( "A", base=16 ) == 10 );
+assert( _parse_whole( "E", base=16 ) == 14 );
+assert( _parse_whole( "F", base=16 ) == 15 );
+
+echo( "testing parse_int( string )" );
+assert( parse_int( "12" ) == 12 );
+assert( parse_int( "-12" ) == -12 );
+assert( parse_int( "120000" ) == 120000 );
+assert( parse_int( "   120000   " ) == 120000 );
+
+
+echo( "testing parse_hex( string )" );
+assert( parse_hex( "-0" ) == 0 ); 
+assert( parse_hex( "000" ) == 0 ); 
+assert( parse_hex( "01" ) == 1 );
+assert( parse_hex( "010" ) == 16 );
+assert( parse_hex( "0100" ) == 256 );
+assert( parse_hex( "1000" ) == 4096 );
+assert( parse_hex( "00a" ) == 10 );
+assert( parse_hex( "0b0" ) == 16*11 );
+assert( parse_hex( "c00" ) == 256*12 );
+assert( parse_hex( "f000" ) == 4096*15 );
+
+assert( parse_hex( "12" ) == 18 );
+assert( parse_hex( "-12" ) == 18 );
+assert( parse_hex( "A" ) == 10 ); 
+assert( parse_hex( "F" ) == 15); 
+assert( parse_hex( "F2" ) == 16*15+2 ); 
+assert( parse_hex( "   034ef   " ) == 4096*3 + 256*4 + 16*14 + 15 );
 
 
 echo( "testing before()" );
@@ -417,14 +480,6 @@ assert( str_equals( ts, mts, ignore_case=true ) );
 assert( ! str_equals( "this", "THIS" ) ); // f
 assert( str_equals( "this", "THIS", ignore_case=true ) ); // t
 
-echo("testing vec_equals:" );
-assert( is_undef( vec_equals( digits, [] ) ) );
-assert( is_undef( vec_equals( [], digits ) ) );
-// echo( cd = code_digits );
-assert( vec_equals( code_digits,  [48, 49, 50, 51, 52, 53, 54, 55, 56, 57] ) );
-assert( vec_equals( [], [] ) );
-assert( ! vec_equals( [0,1,2], [0]) );
-
 
 echo( "testing starts_with:" );
 assert( is_undef( starts_with( 42, "this" ) ) );
@@ -465,6 +520,21 @@ assert( ! starts_with( "xxx", "x", 5, true ) );
 assert( ! starts_with( "", "test", -1, true ) );
 assert( starts_with( ts, "his", 1, true ) );
 
+
+echo( "testing _match()" );
+assert(   _match( ts, "this", 0 ) == 4 );
+assert( ! _match( ts, "THIS", 0 ) );
+assert(   _match( mts, "IS", 5 ) == 7 );
+assert( ! _match( mts, "is", 5 ) );
+
+assert( ! _match( mts, "", 5 ) );
+
+assert(   _match( ts, "THIS", 0, ignore_case=true ) == 4 );
+assert(   _match( ts, "this", 0, ignore_case=true ) == 4 );
+assert(   _match( mts, "IS",  5, ignore_case=true ) == 7 );
+assert(   _match( mts, "is",  5, ignore_case=true ) == 7 );
+
+
 echo( "\tends_with with case()" );
 assert( ends_with( ts, "test") );
 assert( ! ends_with( mts, "test") );
@@ -473,20 +543,12 @@ assert( ! ends_with( "xxx", "test") );
 assert( ends_with( "xxx", "x") );
 assert( ! ends_with( "", "test" ) );
 
-echo( "testing ends_without case" ); 
+echo( "testing ends_with and case true" ); 
 assert( ends_with( mts, " a test", true ) );
 assert( ends_with( mts, " a tESt", true ) );
 assert( ends_with( mts, ""), true  );
 assert( ends_with( "xxx", "X", true ) );
 assert( ! ends_with( "", "TEST", true  ) );
-
-
-echo( "testing code_in_range()" );
-assert( is_undef( code_in_range( undef ) ) );
-assert( is_undef( code_in_range( 1, 1 ) ) );
-assert(   code_in_range( 2, 0, 12) ); // first correct use - true
-assert( ! code_in_range( 2, 12, 20) ); // false
-assert(   code_in_range( 15, 20, 12) ); // false
 
 
 echo( "testing trim:" );
@@ -537,7 +599,7 @@ assert( _match_set( "bbbcccaaa",      "a",  pos4 ) == pos4 );//  4, input pos !
 assert( _match_set( "bbbcccaaa",      "a",  pos5 ) == pos5 );//  5
 assert( _match_set( "bbbcccaaa",      "a",  pos6 ) == pos9 );//  9, correct
 assert( _match_set( "aaabbbcccaaa",   "a",  pos7 ) == pos7 );//  7, input pos
-assert( _match_set( "aaabbbcccaaa",   "a", pos20 ) == pos20 );// 20, not found, return input pos
+assert( _match_set( "aaabbbcccaaa",   "a",  pos20 ) == pos12 );
 assert( _match_set( "aaabbbcccaaa",  "ac",  pos6 ) == pos12 );//12 correct
 assert( _match_set( "aaabbbcccaaa", "abc",  pos6 ) == pos12 );// 12 correct
 
@@ -596,7 +658,7 @@ abcd  = " a b c d ";
 
 echo( "testing _index_of_first()" );
 
-fnull  = _index_of_first( null  ); // null string -> undef
+fnull  = _index_of_first( null  );
 fone   = _index_of_first( one   );
 ftwo   = _index_of_first( two   );
 fstart = _index_of_first( start );
@@ -610,6 +672,7 @@ fmul2  = _index_of_first( multi, "  " );
 fmul3  = _index_of_first( mul3  );
 fmul33 = _index_of_first( mul3, "   " );
 
+if( _TEST_ENABLED_ ) {
 echo( fnull = fnull );
 echo( fone = fone  );
 echo( ftwo = ftwo  );
@@ -623,6 +686,21 @@ echo( fmulti =fmulti);
 echo( fmul2=fmul2  );
 echo( fmul3  =fmul3);
 echo( fmul33 =fmul33 );
+}
+
+assert( is_undef( fnull ) );
+assert( is_undef( fone  ) );
+assert(  _index_of_first( two   ) == ftwo   );
+assert(  _index_of_first( start ) == fstart );
+assert(  _index_of_first( end   ) == fend );
+assert(  _index_of_first( both  ) == fboth );
+assert(  _index_of_first( all   ) == fall );
+assert(  _index_of_first( test  ) == ftest );
+assert(  _index_of_first( abcd  ) == fabcd );
+assert(  _index_of_first( multi ) == fmulti ); 
+assert(  _index_of_first( multi, "  " )== fmul2  );
+assert(  _index_of_first( mul3  )== fmul3  );
+assert(  _index_of_first( mul3, "   " )== fmul33  );
 
 
 assert( _index_of_first( ts, " ", 0 ) == [4,5] );
@@ -647,8 +725,7 @@ threeTees = [[0, 1], [10, 11], [13, 14]];
 assert( _index_of_recurse( ts, "t", [0,1], 0 ) == threeTees );
 notFound = [];
 assert( is_undef( _index_of_recurse( ts, "z", undef, 0 ) ) );
-
-echo( _index_of_recurse( ts, "z", [], 0 ) );
+assert( is_undef( _index_of_recurse( ts, "z", [], 0 ) ) );
 
 rnull  = _index_of_recurse( null,  " ",fnull,  0 );
 rone   = _index_of_recurse( one,   " ",fone,   0 );
@@ -664,7 +741,7 @@ rmul2  = _index_of_recurse( multi, "  ", fmul2,0 );
 rmul3  = _index_of_recurse( mul3,  " ", fmul3, 0 );
 rmul33 = _index_of_recurse( mul3, "   ", fmul33, 0 );
 
-
+if( _TEST_ENABLED_ ) {
 echo( rnull  = rnull  );
 echo( rone   = rone   );
 echo( rtwo   = rtwo   );
@@ -678,6 +755,21 @@ echo( rmulti = rmulti );
 echo( rmul2  = rmul2  );
 echo( rmul3  = rmul3  );
 echo( rmul33 = rmul33 );
+}
+
+assert( is_undef(  _index_of_recurse( null,  " ",fnull,  0 ) ) );
+assert( is_undef(  _index_of_recurse( one,   " ",fone,   0 ) ) );
+assert(  _index_of_recurse( two,   " ",ftwo,   0 ) == rtwo );
+assert(  _index_of_recurse( start, " ",fstart, 0 ) == rstart );
+assert(  _index_of_recurse( end,   " ",fend,   0 ) == rend );
+assert(  _index_of_recurse( both,  " ",fboth,  0 ) == rboth );
+assert(  _index_of_recurse( all,   " ",fall,   0 ) == rall );
+assert(  _index_of_recurse( test,  " ",ftest,  0 ) == rtest );
+assert(  _index_of_recurse( abcd,  " ", fabcd, 0 ) == rabcd );
+assert(  _index_of_recurse( multi, " ", fmulti,0 ) == rmulti );
+assert(  _index_of_recurse( multi, "  ", fmul2,0 ) == rmul2 );
+assert(  _index_of_recurse( mul3,  " ", fmul3, 0 ) == rmul3 );
+assert(  _index_of_recurse( mul3, "   ", fmul33, 0 ) == rmul33 );
 
 echo( "\n\ttesting  _index_of( string, delim, pos=0 )" );
 
@@ -703,7 +795,7 @@ imul2  = _index_of( multi, "  ", 0 );
 imul3  = _index_of( mul3,  " " , 0 );
 imul33 = _index_of( mul3, "   ", 0 );
 
-
+if( _TEST_ENABLED_ ) {
 echo( inull  = inull  );
 echo( ione   = ione   );
 echo( itwo   = itwo   );
@@ -717,8 +809,20 @@ echo( imulti = imulti );
 echo( imul2  = imul2  );
 echo( imul3  = imul3  );
 echo( imul33 = imul33 );
-
-
+}
+assert( is_undef(  _index_of( null,  " ",  0 ) ) );
+assert(  _index_of( one,   " ",  0 ) == [] );
+assert(  _index_of( two,   " ",  0 ) == itwo );
+assert(  _index_of( start, " ",  0 ) == istart );
+assert(  _index_of( end,   " ",  0 ) == iend );
+assert(  _index_of( both,  " ",  0 ) == iboth );
+assert(  _index_of( all,   " ",  0 ) == iall );
+assert(  _index_of( test,  " ",  0 ) == itest );
+assert(  _index_of( abcd,  " ",  0 ) == iabcd );
+assert(  _index_of( multi, " " , 0 ) == imulti );
+assert(  _index_of( multi, "  ", 0 ) == imul2 );
+assert(  _index_of( mul3,  " " , 0 ) == imul3 );
+assert(  _index_of( mul3, "   ", 0 ) == imul33 );
 
 // return a vector of the words in the given string
 //  the default is to separate on space characters, but any
@@ -726,50 +830,194 @@ echo( imul33 = imul33 );
 
 echo( "testing str_split( string, delim )" );
 
+if( _TEST_ENABLED_ ) {
 echo( blk1=str_split( manyBlanksString, " " ) ); // == [" ", " ", "test", " ", " ", "with", "blanks", " ", " "] );
 echo( blk2=str_split( manyBlanksString, "  " ) ); // == ["  ", "test", "  ", "with blanks", "  "] );
 
 echo( onT =str_split( ts, "t" ) ); // ==  ["his is a ", "es"] );
 echo( onZ=str_split( ts, "z" ) ); // undef
-
+}
 
 echo( "\n\ttesting _new_split ( string, delims )" );
+snull  = _new_split( one,   inull   );
+sone   = _new_split( one,   ione    );
+stwo   = _new_split( two,   itwo    );
+sstart = _new_split( start, istart  );
+send   = _new_split( end,   iend    );
+sabcd  = _new_split( abcd,  iabcd   );
+sboth  = _new_split( both,  iboth   );
+sall   = _new_split( all,   iall    ); 
+stest  = _new_split( test,  itest   );
+smulti = _new_split( multi, imulti  );
+smul2  = _new_split( multi, imul2   );
+smul3  = _new_split( mul3,  imul3   );
+smul33 = _new_split( mul3,  imul33  );
 
-echo( snull  = _new_split( one,   rnull   ) );
-echo( sone   = _new_split( one,   rone    ) );
-echo( stwo   = _new_split( two,   rtwo    ) );
-echo( sstart = _new_split( start, rstart  ) );
-echo( send   = _new_split( end,   rend    ) );
-echo( sabcd  = _new_split( abcd,  rabcd   ) );
-echo( sboth  = _new_split( both,  rboth   ) );
-echo( sall   = _new_split( all,   rall    ) ); 
-echo( stest  = _new_split( test,  rtest   ) );
-echo( smulti = _new_split( multi, rmulti  ) );
-echo( smul2  = _new_split( multi, rmul2   ) );
-echo( smul3  = _new_split( mul3,  rmul3   ) );
-echo( smul33 = _new_split( mul3,  rmul33  ) );
+if( _TEST_ENABLED_ ) {
+echo( snull  = snull );
+echo( sone   = sone );
+echo( stwo   = stwo );
+echo( sstart = sstart );
+echo( send   = send );
+echo( sabcd  = sabcd );
+echo( sboth  = sboth );
+echo( sall   = sall ); 
+echo( stest  = stest );
+echo( smulti = smulti );
+echo( smul2  = smul2 );
+echo( smul3  = smul3 );
+echo( smul33 = smul33 );
+}
+
+assert( is_undef( _new_split( one,   inull ) ) );
+assert(   _new_split( one,   ione    ) == sone );
+assert(   _new_split( two,   itwo    ) == stwo );
+assert(   _new_split( start, istart  ) == sstart );
+assert(   _new_split( end,   iend    ) == send );
+assert(   _new_split( abcd,  iabcd   ) == sabcd );
+assert(   _new_split( both,  iboth   ) == sboth );
+assert(   _new_split( all,   iall    ) == sall ); 
+assert(   _new_split( test,  itest   ) == stest );
+assert(   _new_split( multi, imulti  ) == smulti );
+assert(   _new_split( multi, imul2   ) == smul2 );
+assert(   _new_split( mul3,  imul3   ) == smul3 );
+assert(   _new_split( mul3,  imul33  ) == smul33 );
+
 
 echo( "\n\ttesting new_split ( string, separator )" );
+if( _TEST_ENABLED_ ) {
 echo( blk1=new_split( manyBlanksString, " " ) ); // == [" ", " ", "test", " ", " ", "with", "blanks", " ", " "] );
 echo( blk2=new_split( manyBlanksString, "  ") ); // == ["  ", "test", "  ", "with blanks", "  "] );
 
 echo( tst=new_split( ts, "t" ) ); // ==  ["his is a ", "es"] );
 echo( tsz=new_split( ts, "z" ) ); // undef
+}
+assert( new_split( manyBlanksString, " " )  == [" ", " ", "test", " ", " ", "with", " ", "blanks", " ", " "] );
+assert( new_split( manyBlanksString, "  ")  == ["  ", "test", "  ", "with blanks", "  "] );
 
-echo( tsnull = new_split( ts, null  ) );
-echo( snull  = new_split( null  ) );
-echo( sone   = new_split( one   ) );
-echo( stwo   = new_split( two   ) );
-echo( sstart = new_split( start ) );
-echo( send   = new_split( end   ) );
-echo( sabcd  = new_split( abcd  ) );
-echo( sboth  = new_split( both  ) );
-echo( sall   = new_split( all   ) ); 
-echo( stest  = new_split( test  ) );
-echo( smulti = new_split( multi ) );
-echo( smul2  = new_split( multi, "  " ) );
-echo( smul3  = new_split( mul3  ) );
-echo( smul33 = new_split( mul3, "   " ) );
+assert( new_split( ts, "t" ) ==  [" ", "his is a ", " ", "es", " "] );
+assert( new_split( ts, "z" ) == [ts] );
+
+tsnull = new_split( ts, null  );
+tnull  = new_split( null  );
+tone   = new_split( one   );
+ttwo   = new_split( two   );
+tstart = new_split( start );
+tend   = new_split( end   );
+tabcd  = new_split( abcd  );
+tboth  = new_split( both  );
+tall   = new_split( all   ); 
+ttest  = new_split( test  );
+tmulti = new_split( multi );
+tmul2  = new_split( multi, "  " );
+tmul3  = new_split( mul3  );
+tmul33 = new_split( mul3, "   " );
+
+if( _TEST_ENABLED_ ) {
+echo( tsnull = tsnull );
+echo( tnull  = tnull  );
+echo( tone   = tone   );
+echo( ttwo   = ttwo   );
+echo( tstart = tstart );
+echo( tend   = tend   );
+echo( tabcd  = tabcd  );
+echo( tboth  = tboth  );
+echo( tall   = tall   ); 
+echo( ttest  = ttest  );
+echo( tmulti = tmulti );
+echo( tmul2  = tmulti );
+echo( tmul3  = tmul3  );
+echo( tmul33 = tmul3  );
+}
+
+assert(  new_split( ts, null  ) == tsnull );
+assert(  new_split( null  )     == tnull );
+assert(  new_split( one   ) == tone );
+assert(  new_split( two   ) == ttwo );
+assert(  new_split( start ) == tstart );
+assert(  new_split( end   ) == tend );
+assert(  new_split( abcd  ) == tabcd );
+assert(  new_split( both  ) == tboth );
+assert(  new_split( all   ) == tall ); 
+assert(  new_split( test  ) == ttest );
+assert(  new_split( multi ) == tmulti );
+assert(  new_split( multi, "  " ) == tmul2 );
+assert(  new_split( mul3  ) == tmul3 );
+assert(  new_split( mul3, "   " ) == tmul33 );
+
+echo( "\n\ttesting _split_only( ... dot ) for floats" );
+
+if( _TEST_ENABLED_ ) {
+echo( _index_of( "12",   "." ) );
+echo( _index_of( "12.",  "." ) );
+echo( _index_of( "12.2", "." ) );
+echo( _index_of(   ".2", "." ) );
+
+echo( _split_only( "12",   _index_of( "12",   "." ) ) );
+echo( _split_only( "12.",  _index_of( "12.",  "." ) ) );
+echo( _split_only( "12.2", _index_of( "12.2", "." ) ) );
+echo( _split_only(   ".2", _index_of(   ".2", "." ) ) );
+
+echo( _new_split( "12",   _index_of( "12",   "." ) ) );
+echo( _new_split( "12.",  _index_of( "12.",  "." ) ) );
+echo( _new_split( "12.2", _index_of( "12.2", "." ) ) );
+echo( _new_split(   ".2", _index_of(   ".2", "." ) ) );
+}
+
+echo( "testing _parse_float(sections)" );
+
+// echo( ff0 = float_fraction( "1", 0 ) );
+assert( float_fraction( "1", 0 ) == 0.1   );
+
+ff1 = float_fraction( "01", 0 );
+//echo( is_num( ff1 ) );
+//echo( ff1=ff1 );
+//echo( str( ff1 ) );
+//echo( "should be true ", 0.01 == ff1 );
+//echo( "is true ", _nearly_equal( 0.01, ff1 ) );
+assert( _nearly_equal( float_fraction( "01", 0 ), 0.01 ) );
+
+ff3 = float_fraction( "001", 0 );
+fn3 = 0.001;
+//echo( "should be true ", 0.001 == ff3 );
+//echo( "should be true ",   fn3 == ff3 );
+//echo( "is true ", _nearly_equal( 0.001, ff3 ) );
+assert( _nearly_equal( float_fraction( "001", 0 ), 0.001 ) );
+assert( _nearly_equal( float_fraction( "001", 0 ), ff3 ) );
+assert( _nearly_equal( float_fraction( "001", 0 ), fn3 ) );
+
+ff4 = float_fraction( "123", 0 );
+// echo( ff4=ff4);
+assert( _nearly_equal( float_fraction( "123", 0 ), 0.123 ) );
+
+
+assert( is_undef( _split_float("234.234.234", _index_of( "234.234.234", "." ) ) ) );
+
+fl12 = "12";
+//echo( "index ", fl12, _index_of( fl12, "." ) );
+assert( _split_float(fl12, _index_of( fl12, "." ) ) == 12 );
+assert( parse_float(fl12) == 12 );
+
+
+fl12dot = "12.";
+//echo( "index ", fl12dot, _index_of( fl12dot, "." ) );
+assert( _split_float(fl12, _index_of( fl12dot, "." ) ) == 12 );
+assert( parse_float(fl12dot) == 12 );
+
+fl122 = "12.2";
+//echo( "index ", fl122, _index_of( fl122, "." ) );
+assert( _split_float(fl122, _index_of( fl122, "." ) ) == 12.2 );
+assert( parse_float(fl122) == 12.2 );
+
+fldot2 = ".2";
+//echo( "index ", fldot2, _index_of( fldot2, "." ) );
+//echo( _split_float(fldot2, _index_of( fldot2, "." ) ) == .2 );
+assert( parse_float(fldot2) == 0.2 );
+ 
+assert( parse_float( "-12" )     == -12 );
+assert( parse_float( "-12.456" ) == -12.456);
+assert( parse_float( "-0.456" )  == -0.456);
+assert( parse_float( "-.456" )   == -0.456);
 
 echo( "testing title()" );
 assert( is_undef( title( notString ) ) );
@@ -778,23 +1026,20 @@ threeBlanks = "   ";
 assert( title( threeBlanks ) == threeBlanks);
 assert( is_undef( title( 32 ) ) ); 
 
-foobar = "!@#$1234foobar@#$1234";
-FOOBAR = "!@#$1234 FOOBAR !@#$1234";
-
 testCorrect = "This Is A Test";
-echo( ts  = title( ts   ) );
-echo( pts = title( pts  ) );
-echo( mts = title( mts  ) ); 
+//echo( ts  = title( ts   ) );
+//echo( pts = title( pts  ) );
+//echo( mts = title( mts  ) ); 
 
 assert( title( ts  )  == testCorrect );
 assert( title( pts  ) == str( " ", testCorrect, " " ) );
 assert( title( mts )  == testCorrect );
 
-echo( word_list = new_split( lower(foobar) ) );
-echo( foo = title( foobar ) );
+//echo( word_list = new_split( lower(foobar) ) );
+//echo( foo = title( foobar ) );
 
 assert( title( foobar ) == foobar );
 assert( title( FOOBAR ) == "!@#$1234 Foobar !@#$1234");
-
+ 
 
 echo ( "all done" );
