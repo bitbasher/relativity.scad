@@ -23,10 +23,15 @@ numbers = "some 123 numb 15.5 ers, a-23nd pun5556; tations99";
 foobar = "!@#$1234foobar@#$1234";
 FOOBAR = "!@#$1234 FOOBAR !@#$1234";
 
+if( _TEST_ENABLED_ ) {
+echo( "testing numbers" );
+echo( MAX_VALUE );
+}
+
 echo( "testing ascii_code" );
 illegalCodes = "\u20AC 10 \u263A"; // UNICODE for 10 euro and a smilie;
 
-/*
+if( _TEST_ENABLED_ ) {
 echo( legal = ts );
 echo( legal = ascii_code(ts) );
 echo( padded = pts );
@@ -35,7 +40,7 @@ echo( mixed = mts );
 echo( mixed = ascii_code(mts) );
 echo( illegal = illegalCodes );
 echo( illegal = ascii_code(illegalCodes) );
- */ 
+}
 tsv =  [116, 104, 105, 115, 32, 105, 115, 32, 97, 32, 116, 101, 115, 116];
 ptsv = [32, 116, 104, 105, 115, 32, 105, 115, 32, 97, 32, 116, 101, 115, 116, 32];
 mtsv = [84, 104, 105, 115, 32, 73, 83, 32, 97, 32, 116, 69, 83, 116];
@@ -58,8 +63,6 @@ codevect = [for(c=_ASCII) ord(c)];
 //echo( "code asci", ascii_code( _ASCII ), _CHAR_NL );
 
 assert( ascii_code( _ASCII ) == codevect );
-
-echo( MAX_VALUE );
 
 echo( "testing boolean test functions" );
 echo( "\ttesting _is_variable_safe" );
@@ -86,7 +89,6 @@ assert( ! is_not_string( "   " ) );
 assert( is_not_string( [] ) );
 assert( is_not_string( 42 ) );
 assert( is_not_string( undefStr ) );
-
 
 
 echo( "\tstr_is_empty" );
@@ -123,14 +125,18 @@ assert( is_undef( str_is_allspaces( ["  "] ) ) );
 
 echo( "testing _str_vector_join( arrayOfStrings, index, delimeter)" );
 // this is the internal function that does NOT check all input
+//  test to see if the last char to be processed is returned
+//  that is the 0-th element of the given vector
 assert( _str_vector_join( ["a","b","c"], 0 ) == "a" );
 assert( _str_vector_join( ["a","b","c"], 0, "-" ) == "a" );
 assert( _str_vector_join( [3,4,5], 0 ) == "3" );
 assert( _str_vector_join( [34,45,56], 0 ) == "34" );
 assert( _str_vector_join( [34,45,56], 0,"-" ) == "34" );
+// try joining from the 1-st to the 0-th
 assert( _str_vector_join( [34,45,56], 1 ) == "3445" );
 assert( _str_vector_join( [34,45,56], 1,"-" ) == "34-45" );
 
+// starting from 2-nd char 
 assert( _str_vector_join( ["a","b","c"], 2 ) == "abc" );
 assert( _str_vector_join( ["a","b","c"], 2, "-" ) == "a-b-c" );
 assert( _str_vector_join( [3,4,5], 2 ) == "345" );
@@ -489,6 +495,7 @@ assert( ! starts_with( "short", "", 40 ) ); // pos after end of string
 assert( is_undef( starts_with( "this", ts, -1 ) ) );
 assert( ! starts_with( ts, "THIS" ) ); // wrong case -> false
 assert( starts_with( ts, "THIS", ignore_case=true  ) ); // true
+assert( starts_with( ts, "this" ) ); // true
 assert( starts_with( "this", "this" ) ); // true
 assert( starts_with( "this", "THIS", ignore_case=true ) ); // true
 
@@ -824,9 +831,21 @@ assert(  _index_of( multi, "  ", 0 ) == imul2 );
 assert(  _index_of( mul3,  " " , 0 ) == imul3 );
 assert(  _index_of( mul3, "   ", 0 ) == imul33 );
 
-// return a vector of the words in the given string
-//  the default is to separate on space characters, but any
-//  string can be used to separate blocks of text in the input
+echo( "testing strIndexVector( string, delim= )" );
+echo( one  = strIndexVector( one ) );
+echo( two  = strIndexVector( two ) );
+echo( start= strIndexVector( start ) );
+echo( end  = strIndexVector( end ) );
+echo( both = strIndexVector( both ) );
+echo( all  = strIndexVector( all ) );
+echo( test = strIndexVector( test ) );
+echo( abcd = strIndexVector( abcd ) );
+echo( multi= strIndexVector( multi ) );
+echo( mul2 = strIndexVector( multi, delim="  " )  );
+echo( mul3 = strIndexVector( mul3) );
+echo( mul33= strIndexVector( mul3, delim="   " ) );
+
+
 
 echo( "testing str_split( string, delim )" );
 

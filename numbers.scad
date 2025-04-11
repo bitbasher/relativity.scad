@@ -5,12 +5,12 @@ function numbes_version_num() =
 	_strings_version.x * 10000 + _strings_version.y * 100 + _strings_version.z;
 
 
-_TEST_ENABLED_ =  false;
+_NUMTEST_ENABLED =  false;
 
 function is_not_num( num ) =
 	is_undef( num ) || ! is_num( num );
 
-if( _TEST_ENABLED_ ) {
+if( _NUMTEST_ENABLED ) {
 echo( "\tis_not_num" );
 echo( is_not_num(undef) );
 echo( is_not_num(42) );
@@ -33,7 +33,7 @@ function minOf( first,second) =
         undef
     : first < second ? first : second ;
 
-if( _TEST_ENABLED_ ) {
+if( _NUMTEST_ENABLED ) {
 echo( maxOf(2,3) );
 echo( maxOf(3,2) )
 echo( maxOf("2",3) );
@@ -57,7 +57,7 @@ function _code_in_range(code, min_code, max_code) =
 		code >= min_code && code <= max_code
 	;
 
-if( _TEST_ENABLED_ ) {
+if( _NUMTEST_ENABLED ) {
 echo( "testing code_in_range()" );
 assert( is_undef( code_in_range( undef ) ) );
 assert( is_undef( code_in_range( 1, 1 ) ) );
@@ -73,7 +73,7 @@ function _nearly_equal( a, b, epslion=0.00001 ) =
 
 
 Min_Normal = 2 ^ -1022;
-// MAX_VALUE = (2-2 ^ -52) * 2 ^ 1023 ; 
+MAX_VALUE = (2-2 ^ -52) * 2 ^ 1023 ; 
 
 
 function nearly_equal( a, b, epslion=0.00001 ) =
@@ -91,7 +91,7 @@ function nearly_equal( a, b, epslion=0.00001 ) =
 	: diff / min((absA + absB), MAX_VALUE) < epsilon
 	;
 
-if( _TEST_ENABLED_ ) {
+if( _NUMTEST_ENABLED ) {
 echo( _nearly_equal( 0.01000000000000001,  0.01000000000000001) );
 
 echo( nearly_equal( 0.01000000000000001,  0.01000000000000001) );

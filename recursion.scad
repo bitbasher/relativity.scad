@@ -9,6 +9,9 @@
 function _null_coalesce( item, replacement ) = 
 	is_undef( item ) ? replacement : item ;
 
+function _coalesce_true( test, trueaction, falseaction ) = 
+	test ? trueaction : falseaction ;
+
 // return value IFF it is valid, else use the fallback
 //  this is used during recursion to process along a
 //  list, or string, to return a valid, known item
@@ -18,3 +21,6 @@ function _null_coalesce( item, replacement ) =
 function _coalesce_on( value, error, fallback ) = 
 	value == error? fallback : value;
 	
+function _coalesce_test( value, correct, good, bad ) =
+	value == correct ? good : bad;
+	;
