@@ -1,11 +1,22 @@
 _numbers_version = 
-	[2022, 11, 5];
+	[2025, 04, 16];
 function numbers_version() = _numbers_version;
 function numbes_version_num() =
-	_strings_version.x * 10000 + _strings_version.y * 100 + _strings_version.z;
+	_numbers_version.x * 10000 +
+	_numbers_version.y * 100 +
+	_numbers_version.z;
 
 
-_NUMTEST_ENABLED =  false;
+_NUMTEST_ENABLED = false;
+
+
+Min_Normal = 2 ^ -1022;
+MAX_VALUE = (2-2 ^ -52) * 2 ^ 1023 ; 
+
+if( _NUMTEST_ENABLED ) {
+echo( "testing numbers" );
+echo( MAX_VALUE, Min_Normal );
+}
 
 function is_not_num( num ) =
 	is_undef( num ) || ! is_num( num );
@@ -16,12 +27,12 @@ echo( is_not_num(undef) );
 echo( is_not_num(42) );
 echo( is_not_num("42") );
 echo( is_not_num([42]) );
-
+}
 assert( ! is_not_num( 42 ) );
 assert( ! is_not_num( -2.222 ) );
 assert( is_not_num( "string" ) );
 assert( is_not_num( [] ) );
-}
+
     
 function maxOf( first,second) = 
     is_not_num (first) || is_not_num(second) ?
@@ -40,30 +51,66 @@ echo( maxOf("2",3) );
 echo( maxOf(2,"3") );
 echo( maxOf([2],3) );
 echo( maxOf([3],2) );
+
+echo( mx=max(2,3) );
+echo( mx=max(3,2) );
 }
 
- 
-// all three parameters must be defined numbers
-function code_in_range(code, min_code, max_code) = 
-	is_not_num( code ) || is_not_num( min_code ) || is_not_num( max_code ) ?
-		undef
-	: _code_in_range(code, min_code, max_code);
 
-// function with no checking
-function _code_in_range(code, min_code, max_code) =
-	min_code > max_code ?
-		code >= max_code && code <= min_code
+// return the sum of the values in a vector 
+function sum_vec(vec, from = 0, to = undef ) =
+	let( end = is_undef( to ) ? len(vec)-1 : to )
+	( from == end ? vec[end] : vec[end] + sum_vec(vec, from, end-1 ) );
+ 
+ if( _NUMTEST_ENABLED ) {
+ vec=[ 10, 20, 30, 40 ];
+ echo("sum vec=", sum_vec( vec, 1, 2 )); // calculates 20+30=50
+ echo("sum vec=", sum_vec( vec )); // 100
+ }
+ 
+ 
+// Cumulative sum of values in v
+function cumsum_vec(v) =
+	let( lenv = len(v) )
+    [for(a = v[0], i = 1; i < lenv; a = a+v[i], i = i+1) if(i==lenv-1) a+v[i] ][0] ;
+
+if(_NUMTEST_ENABLED) {
+csv = [1,3,7,1];
+vec=[ 10, 20, 30, 40 ];
+echo( cs=cumsum_vec( csv ));
+echo( cs=cumsum_vec( vec ));
+}
+
+ // return the average of the values in a vector 
+function avg_vec(vec, from = 0, to=undef ) =
+	let( end = is_undef( to ) ? len(vec)-1 : to,
+		qty = minOf( end-from, len(vec) )
+		)
+	sum_vec( vec, from, end ) / qty ;
+
+if( _NUMTEST_ENABLED ) {
+vec=[ 10, 20, 30, 40 ];
+echo("avg vec=", avg_vec( vec, 1, 2 )); // calculates 50/2 = 25
+echo("avg vec=", avg_vec( vec ));
+}
+
+// all three parameters must be defined numbers
+function num_in_range(num, min_num, max_num) = 
+	is_not_num( num ) || is_not_num( min_num ) || is_not_num( max_num ) ?
+		undef
+	: min_num > max_num ?
+		num >= max_num && num <= min_num
 	:
-		code >= min_code && code <= max_code
+		num >= min_num && num <= max_num
 	;
 
 if( _NUMTEST_ENABLED ) {
-echo( "testing code_in_range()" );
-assert( is_undef( code_in_range( undef ) ) );
-assert( is_undef( code_in_range( 1, 1 ) ) );
-assert(   code_in_range( 2, 0, 12) ); // first correct use - true
-assert( ! code_in_range( 2, 12, 20) ); // false
-assert(   code_in_range( 15, 20, 12) ); // false
+echo( "testing _num_in_range()" );
+echo( nir= num_in_range( undef ) );
+echo( nir= num_in_range( 1, 1 ) );
+echo( nir= num_in_range( 2, 0, 12) ); // first correct use - true
+echo( nir= num_in_range( 2, 12, 20) ); // false
+echo( nir= num_in_range( 15, 20, 12) ); // false
 }
 
 
@@ -71,17 +118,11 @@ function _nearly_equal( a, b, epslion=0.00001 ) =
     abs(( a - b )/ b ) < epslion 
     ;
 
-
-Min_Normal = 2 ^ -1022;
-MAX_VALUE = (2-2 ^ -52) * 2 ^ 1023 ; 
-
-
 function nearly_equal( a, b, epslion=0.00001 ) =
 	let(absA = abs(a),
 		absB = abs(b),
 		diff = abs(a - b)
 		)
-	
 	a == b ? 
 		true // shortcut, handles infinities
 	: a == 0 || b == 0 || (absA + absB < Min_Normal ) ?
@@ -92,11 +133,11 @@ function nearly_equal( a, b, epslion=0.00001 ) =
 	;
 
 if( _NUMTEST_ENABLED ) {
-echo( _nearly_equal( 0.01000000000000001,  0.01000000000000001) );
+echo( neq= _nearly_equal( 0.01000000000000001,  0.01000000000000001) );
 
-echo( nearly_equal( 0.01000000000000001,  0.01000000000000001) );
-
+echo( neq=  nearly_equal( 0.01000000000000001,  0.01000000000000001) );
 }
+
 /*
 public static boolean nearlyEqual(float a, float b, float epsilon) {
 		final float absA = Math.abs(a);

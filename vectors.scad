@@ -1,19 +1,13 @@
-_vectors_version = 
-	[25, 02, 28, 1];
+_vectors_version = [25, 02, 28, 1];
 function vectors_version_vec() =
 	_vectors_version;
-function vectors_version_str() =
-	str( 
-    _vectors_version[0], "-",
-    _vectors_version[1], "-",
-    _vectors_version[2], ".",
-    _vectors_version[3]
-    );
 function vectors_version_num() =
-    _vectors_version.x  * 100000 +
+    _vectors_version.x * 100000 +
     _vectors_version.y * 100 +
     _vectors_version.z +
     _vectors_version[3] / 10 ;
+function vectors_version_str() =
+	str( vectors_version_num() );
     
 include <numbers.scad>
 

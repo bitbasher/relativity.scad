@@ -6,7 +6,7 @@ footest = "foo  (1, bar2)";
 regex_test = "foooobazfoobarbaz";
 
 ts = "this is a test"; // test string
-//echo( "ascii code test string ", ascii_code( ts ) );
+//echo( "ascii code test string ", str_to_ascii( ts ) );
 
 pts = str( " " , ts , " " );
 mts = "This IS a tESt"; // test string with capitals
@@ -17,474 +17,11 @@ tsEnd = len(ts)-1;
 tsQty = len(ts);
 
 digits = "0123456789";
-code_digits = ascii_code(digits);
+code_digits = str_to_ascii(digits);
 numbers = "some 123 numb 15.5 ers, a-23nd pun5556; tations99";
 
 foobar = "!@#$1234foobar@#$1234";
 FOOBAR = "!@#$1234 FOOBAR !@#$1234";
-
-if( _TEST_ENABLED_ ) {
-echo( "testing numbers" );
-echo( MAX_VALUE );
-}
-
-echo( "testing ascii_code" );
-illegalCodes = "\u20AC 10 \u263A"; // UNICODE for 10 euro and a smilie;
-
-if( _TEST_ENABLED_ ) {
-echo( legal = ts );
-echo( legal = ascii_code(ts) );
-echo( padded = pts );
-echo( padded = ascii_code(pts) );
-echo( mixed = mts );
-echo( mixed = ascii_code(mts) );
-echo( illegal = illegalCodes );
-echo( illegal = ascii_code(illegalCodes) );
-}
-tsv =  [116, 104, 105, 115, 32, 105, 115, 32, 97, 32, 116, 101, 115, 116];
-ptsv = [32, 116, 104, 105, 115, 32, 105, 115, 32, 97, 32, 116, 101, 115, 116, 32];
-mtsv = [84, 104, 105, 115, 32, 73, 83, 32, 97, 32, 116, 69, 83, 116];
-
-// legalCodes
-assert( ascii_code( ts  )   == tsv );
-assert( ascii_code( pts )   == ptsv );
-assert( ascii_code( mts )   == mtsv );
-assert( ascii_code( illegalCodes ) == [undef, 32, 49, 48, 32, undef] );
-notString = 42;
-assert( is_undef( ascii_code( notString ) ) );
-
-//echo( ascii_code( _ASCII_VISIBLE ) );
-//echo( ascii_code( _ASCII_ALL ) );
-
-// make a reference string based on _WHITESPACE and _ASCII
-
-codevect = [for(c=_ASCII) ord(c)];
-//echo( "code vect", codevect, _CHAR_NL );
-//echo( "code asci", ascii_code( _ASCII ), _CHAR_NL );
-
-assert( ascii_code( _ASCII ) == codevect );
-
-echo( "testing boolean test functions" );
-echo( "\ttesting _is_variable_safe" );
-
-foobar_vector = [
-        ["!", false], ["@", false], ["#", false], ["$", false], ["1", true], 
-        ["2", true],  ["3", true],  ["4", true],  ["f", true],  ["o", true], 
-        ["o", true],  ["b", true],  ["a", true],  ["r", true],  ["@", false], 
-        ["#", false], ["$", false], ["1", true],  ["2", true],  ["3", true], 
-        ["4", true]
-        ];
-// echo( [for(c=foobar) [c,_is_variable_safe( ord(c) ) ]] );
-safe_vector = [for(c=foobar) [c,_is_variable_safe( ord(c) ) ]];
-// echo( safe_vector );
-assert( safe_vector == foobar_vector );
-// echo( _is_variable_safe( ord("_") ) );
-assert( _is_variable_safe( ord("_") ) );
-assert( is_undef( _is_variable_safe( " " ) ) );
-
-echo( "\tis_not_string" );
-assert( ! is_not_string( "xyz" ) );
-assert( ! is_not_string( "" ) );
-assert( ! is_not_string( "   " ) );
-assert( is_not_string( [] ) );
-assert( is_not_string( 42 ) );
-assert( is_not_string( undefStr ) );
-
-
-echo( "\tstr_is_empty" );
-assert( ! str_is_empty( "  " ) );
-assert(   str_is_empty( "" ) );
-assert( ! str_is_empty( "xyz" ) );
-assert( is_undef( str_is_empty( [] ) ) );
-
-
-echo( "\tstr_is_undef_or_empty" );
-
-assert( ! str_is_undef_or_empty( "  " ) );
-assert(   str_is_undef_or_empty( "" ) );
-assert( is_undef( str_is_undef_or_empty( undefStr ) ) );
-assert( ! str_is_undef_or_empty( "xyz" ) );
-assert( is_undef( str_is_undef_or_empty( [] )  ) );
-assert( is_undef( str_is_undef_or_empty( 42 ) ) ); 
-
-echo( "\tstr_is_null_or_allspaces" );
-assert(   str_is_null_or_allspaces( "  " ) );
-assert( ! str_is_null_or_allspaces( " xyz " ) );
-assert(   str_is_null_or_allspaces( "" ) );
-assert( ! str_is_null_or_allspaces( "xyz" ) );
-assert( ! str_is_null_or_allspaces( [] ) ); // non strings as input give "false"
-
-echo( "\tstr_is_allspaces" );
-assert( ! str_is_allspaces( "" ) );
-assert( str_is_allspaces( "  " ) );
-assert( ! str_is_allspaces( "abcd" ) );
-assert( ! str_is_allspaces( " a b c d " ) );
-assert( is_undef( str_is_allspaces( [] ) ) );
-assert( is_undef( str_is_allspaces( ["  "] ) ) );
-
-
-echo( "testing _str_vector_join( arrayOfStrings, index, delimeter)" );
-// this is the internal function that does NOT check all input
-//  test to see if the last char to be processed is returned
-//  that is the 0-th element of the given vector
-assert( _str_vector_join( ["a","b","c"], 0 ) == "a" );
-assert( _str_vector_join( ["a","b","c"], 0, "-" ) == "a" );
-assert( _str_vector_join( [3,4,5], 0 ) == "3" );
-assert( _str_vector_join( [34,45,56], 0 ) == "34" );
-assert( _str_vector_join( [34,45,56], 0,"-" ) == "34" );
-// try joining from the 1-st to the 0-th
-assert( _str_vector_join( [34,45,56], 1 ) == "3445" );
-assert( _str_vector_join( [34,45,56], 1,"-" ) == "34-45" );
-
-// starting from 2-nd char 
-assert( _str_vector_join( ["a","b","c"], 2 ) == "abc" );
-assert( _str_vector_join( ["a","b","c"], 2, "-" ) == "a-b-c" );
-assert( _str_vector_join( [3,4,5], 2 ) == "345" );
-assert( _str_vector_join( [34,45,56], 2 ) == "344556" );
-assert( _str_vector_join( [34,45,56], 2,"-" ) == "34-45-56" );
-
-
-echo( "testing str_vector_join()" );
-// this is the external function that DOES check all input
-assert( str_vector_join( ["a","b","c"] ) == "abc" );
-assert( str_vector_join( [] )  == "" );
-assert( str_vector_join( [3,4,5] )  == "345" );
-assert( str_vector_join( [34,45,56] ) == "344556" );
-assert( str_vector_join( ["a","b","c"], "-" ) == "a-b-c" );
-assert( str_vector_join( [], "-" ) == "" );
-assert( str_vector_join( [3,4,5], "-" ) == "3-4-5" );
-assert( str_vector_join( [34,45,56], "-" ) == "34-45-56" );
-
-echo( "testing _sub_by_index()" );
-assert( _sub_by_index( "abc", 0, 2 ) == "abc" );
-assert( _sub_by_index( "abc", 1, 2 ) == "bc" );
-assert( _sub_by_index( "abc", 2, 2 ) == "c" );
-
-assert( _sub_by_index( "abc", 0, 0 ) == "a" );
-assert( _sub_by_index( "abc", 1, 1 ) == "b" );
-assert( _sub_by_index( "abc", 2, 2 ) == "c" );
-assert( _sub_by_index( "abc", 1, 2 ) == "bc" );
-
-echo( "testing char_to_digit( char, base=10 ) " );
-assert( char_to_digit( "0" ) == 0 );
-assert( char_to_digit( "1" ) == 1 );
-assert( char_to_digit( "9" ) == 9 );
-
-assert( char_to_digit( "0", base=16 ) == 0 );
-assert( char_to_digit( "1", base=16 ) == 1 );
-assert( char_to_digit( "9", base=16 ) == 9 );
-assert( char_to_digit( "A", base=16 ) == 10);
-assert( char_to_digit( "E", base=16 ) == 14);
-assert( char_to_digit( "F", base=16 ) == 15);
-assert( is_undef( char_to_digit( "Z", base=16 ) ) );
-
-
-echo( "testing _parse_whole( string )" );
-assert( _parse_whole( "0", base=10 ) == 0 );
-assert( _parse_whole( "1" ) == 1 );
-assert( _parse_whole( "9", base=10 ) == 9 );
-assert( _parse_whole( "12" ) == 12 );
-assert( _parse_whole( "120000" ) == 120000 );
-
-assert( _parse_whole( "0", base=16 ) == 0 );
-assert( _parse_whole( "1", base=16 ) == 1 );
-assert( _parse_whole( "9", base=16 ) == 9 );
-assert( _parse_whole( "A", base=16 ) == 10 );
-assert( _parse_whole( "E", base=16 ) == 14 );
-assert( _parse_whole( "F", base=16 ) == 15 );
-
-echo( "testing parse_int( string )" );
-assert( parse_int( "12" ) == 12 );
-assert( parse_int( "-12" ) == -12 );
-assert( parse_int( "120000" ) == 120000 );
-assert( parse_int( "   120000   " ) == 120000 );
-
-
-echo( "testing parse_hex( string )" );
-assert( parse_hex( "-0" ) == 0 ); 
-assert( parse_hex( "000" ) == 0 ); 
-assert( parse_hex( "01" ) == 1 );
-assert( parse_hex( "010" ) == 16 );
-assert( parse_hex( "0100" ) == 256 );
-assert( parse_hex( "1000" ) == 4096 );
-assert( parse_hex( "00a" ) == 10 );
-assert( parse_hex( "0b0" ) == 16*11 );
-assert( parse_hex( "c00" ) == 256*12 );
-assert( parse_hex( "f000" ) == 4096*15 );
-
-assert( parse_hex( "12" ) == 18 );
-assert( parse_hex( "-12" ) == 18 );
-assert( parse_hex( "A" ) == 10 ); 
-assert( parse_hex( "F" ) == 15); 
-assert( parse_hex( "F2" ) == 16*15+2 ); 
-assert( parse_hex( "   034ef   " ) == 4096*3 + 256*4 + 16*14 + 15 );
-
-
-echo( "testing before()" );
-assert( before(ts, -1) == nullString );
-assert( before(ts, 0) == nullString );
-assert( before(ts) == nullString );
-
-assert( before( "short", 0) == "" );
-assert( before( "short", 1) == "s" );
-assert( before( "short", 2) == "sh" );
-assert( before( "short", 3) == "sho" );
-assert( before( "short", 4) == "shor" );
-assert( before( "short", 5) == "short" );
-assert( before( "short", 6) == "short" );
-assert( before(ts, tsEnd) == "this is a tes" );
-assert( before(ts, tsQty) == ts );
-assert( before( "", 3 ) == "" );
-assert( before( "   ", 1 ) == " " );
-assert( before( "xyz", 20 ) == "xyz" );
-assert( before(ts, -3) == nullString );
-assert( is_undef( before( ts, undef ) ) );
-assert( is_undef( before( 42, 0 ) ) );
-
-
-echo( "testing starting_from( string, start=0 )" );
-assert(	is_undef( starting_from(ts, -1) ) );
-assert(  starting_from( "abc", 0 ) == "abc" );
-assert(  starting_from( "abc", 1 ) == "bc" );
-assert(  starting_from( "abc", 2 ) == "c" );
-assert(  starting_from( "abc", 3 ) == "" );
-assert(  starting_from( "abc", 4 ) == "" );
-
-
-echo(	"testing after()" );
-assert(	is_undef( after(ts, -1) ) );
-assert( after( "abc", 0 ) == "bc" );
-assert( after( "abc", 1 ) == "c" );
-assert( after( "abc", 2 ) == "" );
-
-assert(	after(ts, 40 ) == nullString );
-assert(	after(ts) == "his is a test" );
-//echo( after(ts, tsEnd) );
-assert(	after(ts, tsEnd) == nullString );
-//echo( after(ts, tsQty) );
-assert(	after(ts, tsQty) == nullString );
-assert(	after(ts, undef) == undef );
-assert( after( ts, [] ) == undef );
-
-
- 
-echo( "testing str_from_to(string, start, end)" ); 
-assert( is_undef( str_from_to("bar", undef, undef) ) );
-assert( is_undef( str_from_to("bar", undef, 1) ) );
-assert( is_undef( str_from_to("bar", 1, undef) ) );
-// echo( sft=str_from_to( ts, -1,  1) );
-assert( is_undef( str_from_to( ts, -1,  1) ) );
-assert( is_undef( str_from_to( ts, 0, -1) ) );
-
-assert( str_from_to( "short", 0, 0)  == "s" );
-assert( str_from_to( "short", 1, 1)  == "h" );
-assert( str_from_to( "short", 2, 2)  == "o" );
-assert( str_from_to( "short", 3, 3)  == "r" );
-assert( str_from_to( "short", 4, 4)  == "t" );
-assert( is_undef( str_from_to( "short", 5, 5) ) );
-assert( is_undef( str_from_to( "short", 6, 6) ) );
-
-assert( str_from_to( "short", 0, 0) == "s" );
-assert( str_from_to( "short", 0, 1) == "sh" );
-assert( str_from_to( "short", 0, 2) == "sho" );
-assert( str_from_to( "short", 0, 3) == "shor" );
-assert( str_from_to( "short", 0, 4) == "short" );
-assert( str_from_to( "short", 0, 5) == "short" );
-assert( str_from_to( "short", 0, 6) == "short" );
-
-assert( is_undef( str_from_to( "short", 1, 0) ) ); // undef as start is > end
-assert( str_from_to( "short", 1, 1) ==  "h" ); // start == end
-assert( str_from_to( "short", 1, 2) ==  "ho" ); 
-assert( str_from_to( "short", 1, 3) ==  "hor" ); 
-assert( str_from_to( "short", 1, 4) ==  "hort" );
-assert( str_from_to( "short", 1, 5) ==  "hort" ); 
-assert( str_from_to( "short", 1, 6) ==  "hort" );
-
-assert( is_undef( str_from_to( "short", 2, 0 ) ) ); // undef as start is > end
-assert( is_undef( str_from_to( "short", 2, 1 ) ) ); // undef as start is > end
-
-// echo( str_from_to( "short", 2, 2) );
-assert( str_from_to( "short", 2, 2) ==  "o" );
-assert( str_from_to( "short", 2, 3) ==  "or" );
-assert( str_from_to( "short", 2, 4) ==  "ort" );
-
-assert( str_from_to( "short", 4, 4) ==  "t" );
-assert( str_from_to( "short", 4, 5) ==  "t" );
-assert( str_from_to( "short", 4, 6) ==  "t" );
-
-assert( is_undef( str_from_to( "short",  20, 20 ) ) );
-assert( is_undef( str_from_to( "short",  -1, 20 ) ) );
-assert( "short" == str_from_to( "short",   0, 20 ) );
-//echo(str_from_to( "short", 2, 20 ));
-assert( str_from_to( "short", 2, 20 ) == "ort" );
-assert( str_from_to( ts,  5, 6 ) == "is" );
-assert( is_undef( str_from_to( ts,  6,  5) ) );
-
-
-echo( "testing str_between_indecies()" ); 
-assert( str_between_indecies("bar", undef, undef) == undef );
-assert( str_between_indecies("bar", undef, 1) == undef );
-assert( str_between_indecies("bar", 1, undef) == undef );
-assert( str_between_indecies( ts, -1,  1) == ts[0] );
-assert( str_between_indecies( "xyz",  1,  2) == "y" );
-assert( str_between_indecies( "this",  1,  3) == "hi" );
-assert( str_between_indecies( "this",  0,  2) == "th" );
-assert( str_between_indecies( "this",  1,  1) == nullString );
-assert( is_undef( str_between_indecies( ts, -1, -1) ) );
-assert( str_between_indecies( "short", 0, 0) == "" );
-assert( str_between_indecies( "short", 0, 1) == "s" );
-assert( str_between_indecies( "short", 0, 2) == "sh" );
-assert( str_between_indecies( "short", 0, 3) == "sho" );
-assert( str_between_indecies( "short", 0, 4) == "shor" );
-assert( str_between_indecies( "short", 0, 5) == "short" );
-assert( str_between_indecies( "short", 0, 6) == "short" );
-
-assert( is_undef( str_between_indecies( "short", 1, 0) ) ); // undef as start is > end
-assert( str_between_indecies( "short", 1, 1) ==  "" ); // start == end
-assert( str_between_indecies( "short", 1, 2) ==  "h" ); // corrent
-assert( str_between_indecies( "short", 1, 3) ==  "ho" ); // corrent
-assert( str_between_indecies( "short", 1, 4) ==  "hor" ); // corrent
-assert( str_between_indecies( "short", 1, 5) ==  "hort" ); // hor
-assert( str_between_indecies( "short", 1, 6) ==  "hort" ); // hor
-
-assert( is_undef( str_between_indecies( "short", 2, 0 ) ) ); // undef as start is > end
-assert( is_undef( str_between_indecies( "short", 2, 1 ) ) ); // undef as start is > end
-assert( str_between_indecies( "short", 2, 2) ==  "" );
-assert( str_between_indecies( "short", 2, 3) ==  "o" );
-assert( str_between_indecies( "short", 2, 4) ==  "or" );
-assert( str_between_indecies( "short", 2, 5) ==  "ort" );
-
-assert( str_between_indecies( "short", 4, 4) ==  "" );
-assert( str_between_indecies( "short", 4, 5) ==  "t" );
-assert( str_between_indecies( "short", 4, 6) ==  "t" );
-
-
-assert(  is_undef( str_between_indecies( "short",  20, 20 ) ) );
-assert( "short" == str_between_indecies( "short",  -1, 20 ) );
-assert( "short" == str_between_indecies( "short",   0, 20 ) );
-//echo(str_between_indecies( "short", 2, 20 ));
-assert( str_between_indecies( "short", 2, 20 ) == "ort" );
-assert( str_between_indecies( ts,  5,  7 ) == "is" );
-assert( is_undef( str_between_indecies( ts,  7,  5) ) );
-
-
-
-echo( "testing _str_sub_from_for:" );
-echo( "\tfrom to last" );
-assert( _str_sub_from_for( "short", 0,5 )  == "short" );
-assert( _str_sub_from_for( "short", 1,5 )  == "hort" );
-assert( _str_sub_from_for( "short", 2,5 )  == "ort" );
-assert( _str_sub_from_for( "short", 3,5 )  == "rt" );
-assert( _str_sub_from_for( "short", 4,5 )  == "t" );
-assert( is_undef( _str_sub_from_for( "short", 5,5 ) ) );
-assert( is_undef( _str_sub_from_for( "short", 6,5 ) ) );
-
-
-echo( "\tfrom for" );
-assert( is_undef( _str_sub_from_for( "short", 0, 0 ) ) );
-assert( _str_sub_from_for( "short", 0, 1 ) == "s" );
-assert( _str_sub_from_for( "short", 0, 2 ) == "sh" );
-assert( _str_sub_from_for( "short", 0, 3 ) == "sho" );
-assert( _str_sub_from_for( "short", 0, 4 ) == "shor" );
-assert( _str_sub_from_for( "short", 0, 5 ) == "short" );
-assert( _str_sub_from_for( "short", 0, 6 ) == "short" );
-
-echo( "\tfrom 4 for" );
-assert( is_undef( _str_sub_from_for( "short", 10, 2) ) ); 
-assert( _str_sub_from_for( "short", 4, 6) == "t" );
-assert( _str_sub_from_for( "short", 4, 1) == "t" );
-assert( _str_sub_from_for( "short", 4, 3) == "t" );
-
-echo( "\tspecial cases" );
-assert( _str_sub_from_for( "short", 2,  2 ) == "or" );
-assert( is_undef( _str_sub_from_for( "short", 2, -2 ) ) );
-assert( is_undef( _str_sub_from_for( "short", 2, 0  ) ) );
-
-/* 
-        str_sub_from_for
- */
-echo( "testing str_sub_from_for:" );
-assert( is_undef( str_sub_from_for( 42) ) );
-assert( is_undef( str_sub_from_for( []) ) );
-assert( is_undef( str_sub_from_for( ts, 50, 2) ) );
-
-echo( "\tonly from" );
-assert( str_sub_from_for( "short", 0 ) == "short" );
-assert( str_sub_from_for( "short", 1 ) == "hort" );
-assert( str_sub_from_for( "short", 2 ) == "ort" );
-assert( str_sub_from_for( "short", 3 ) == "rt" );
-assert( str_sub_from_for( "short", 4 ) == "t" );
-assert( is_undef( str_sub_from_for( "short", 5 ) ) );
-assert( is_undef( str_sub_from_for( "short", 6 ) ) );
-
-echo( "\tfrom for" );
-assert( str_sub_from_for( "short", 0, 0 ) ==  "" );
-assert( str_sub_from_for( "short", 0, 1 ) ==  "s" );
-assert( str_sub_from_for( "short", 0, 2 ) ==  "sh" );
-assert( str_sub_from_for( "short", 0, 3 ) ==  "sho" );
-assert( str_sub_from_for( "short", 0, 4 ) ==  "shor" );
-
-assert( str_sub_from_for( "short", 0, 5 ) ==  "short" );
-assert( str_sub_from_for( "short", 0, 6 ) ==  "short" );
-
-echo( "\tfrom 4 for" );
-assert( is_undef( str_sub_from_for( "short", 10, 2) ) );
-assert( str_sub_from_for( "short", 4, 6) == "t" );
-assert( str_sub_from_for( "short", 4, 1) == "t" );
-assert( str_sub_from_for( "short", 4, 3) == "t" );
-
-echo( "\tspecial cases" );
-assert( str_sub_from_for( "short" ) == "short" );
-assert( str_sub_from_for( "short", 2, 2 )  == "or" );
-assert( str_sub_from_for( "short", 2, -2 ) == nullString );
-assert( str_sub_from_for( "short", 2, 0 )  == nullString );
-
-
-echo( "testing str_vector_join:" );
-assert( str_vector_join(["foo", "bar", "baz"], ", ") == "foo, bar, baz" );
-assert( str_vector_join(["foo", "bar", "baz"], "") == "foobarbaz" );
-assert( str_vector_join(["foo"], ",") == "foo" );
-assert( str_vector_join([], "") == "" );
-assert( str_vector_join([], " ") == "" );
-assert( str_vector_join([], ",") == "" );
-
-
-echo( "testing _char_in_set:" );
-assert(   _char_in_set("t",  ts) );
-assert( ! _char_in_set("T",  ts) );
-assert( _char_in_set("T",  mts) );
-assert( ! _char_in_set("x",  ts) );
-assert( ! _char_in_set( 12,  ts) );
-assert( ! _char_in_set( ts, "T" ) ); // false
-assert(   _char_in_set("T",  ts, true ) );
-assert( ! _char_in_set("x",  ts, true) );
-assert( ! _char_in_set( 12,  ts, true) );
-assert( ! _char_in_set( ts, "T", true ) ); // first param, char, must be a single character
-
-echo( "testing lower()" );
-assert( is_undef( lower( notString ) ) );
-assert( lower( "" ) == "" );
-assert( lower( "  " ) == "  " );
-assert( is_undef( lower( 32 ) ) );
-assert( lower("!@#$1234FOOBAR!@#$1234") == "!@#$1234foobar!@#$1234");
-
-
-echo( "testing upper()" );
-assert( is_undef( upper( notString ) ) );
-assert( upper( "" ) == "" );
-assert( upper( "  " ) == "  " );
-assert( is_undef( upper( 32 ) ) );
-assert( upper("!@#$1234foobar!@#$1234") == "!@#$1234FOOBAR!@#$1234");
-
-
-echo("testing str_equals:" );
-// string must be same length for this function
-assert( ! str_equals(digits, "foobar" ) );
-assert( str_equals(digits, "0123456789") );
-assert( str_equals(nullString, nullString) );
-assert( str_equals( ts, mts, ignore_case=true ) );
-assert( ! str_equals( "this", "THIS" ) ); // f
-assert( str_equals( "this", "THIS", ignore_case=true ) ); // t
 
 
 echo( "testing starts_with:" );
@@ -528,18 +65,18 @@ assert( ! starts_with( "", "test", -1, true ) );
 assert( starts_with( ts, "his", 1, true ) );
 
 
-echo( "testing _match()" );
-assert(   _match( ts, "this", 0 ) == 4 );
-assert( ! _match( ts, "THIS", 0 ) );
-assert(   _match( mts, "IS", 5 ) == 7 );
-assert( ! _match( mts, "is", 5 ) );
+echo( "testing _match_pat()" );
+assert(   _match_pat( ts, "this", 0 ) == 4 );
+assert( ! _match_pat( ts, "THIS", 0 ) );
+assert(   _match_pat( mts, "IS", 5 ) == 7 );
+assert( ! _match_pat( mts, "is", 5 ) );
 
-assert( ! _match( mts, "", 5 ) );
+assert( ! _match_pat( mts, "", 5 ) );
 
-assert(   _match( ts, "THIS", 0, ignore_case=true ) == 4 );
-assert(   _match( ts, "this", 0, ignore_case=true ) == 4 );
-assert(   _match( mts, "IS",  5, ignore_case=true ) == 7 );
-assert(   _match( mts, "is",  5, ignore_case=true ) == 7 );
+assert(   _match_pat( ts, "THIS", 0, ignore_case=true ) == 4 );
+assert(   _match_pat( ts, "this", 0, ignore_case=true ) == 4 );
+assert(   _match_pat( mts, "IS",  5, ignore_case=true ) == 7 );
+assert(   _match_pat( mts, "is",  5, ignore_case=true ) == 7 );
 
 
 echo( "\tends_with with case()" );
@@ -574,7 +111,7 @@ echo( "testing reverse:" );
 assert( reverse("bar") == "rab" );
 assert( reverse("ba") == "ab" );
 assert( reverse("") == "" );
-assert( is_undef( reverse( notString ) ) );
+assert( is_undef( reverse( [] ) ) );
 
 
 echo( "testing _match_set" );
@@ -1039,7 +576,7 @@ assert( parse_float( "-0.456" )  == -0.456);
 assert( parse_float( "-.456" )   == -0.456);
 
 echo( "testing title()" );
-assert( is_undef( title( notString ) ) );
+assert( is_undef( title( [] ) ) );
 assert( title( "" ) == nullString );
 threeBlanks = "   ";
 assert( title( threeBlanks ) == threeBlanks);

@@ -105,7 +105,7 @@ echo( starts_with("end ",   " ",0) );       // false
 echo( starts_with("two words"," ",0) );     // false
 
 echo( _match_pat("one"," ",0) );
-echo( _match_pat("start "," ",0) );
+echo( _match_pat(" start"," ",0) );
 echo( _match_pat("end "," ",0) );
 echo( _match_pat("two words"," ",0) );
 
@@ -226,7 +226,7 @@ mul3  = "mul   ti   ple   ";
 //  are checked for existance
 //  if the delimiter string is longer than the one given it cannot
 //  possibly match
-function strIndexVector( string, delim=" " ) =
+function strParseVector( string, delim=" " ) =
 	is_not_string( string ) || is_not_string( delim ) ?
         undef
 	: len( delim ) > len( string ) ?
@@ -255,19 +255,19 @@ echo( iof = _index_of_next( multi,"  ", 0 ) );
 echo( iof = _index_of_next( mul3, " ", 0 ) );
 echo( iof = _index_of_next( mul3, "   ", 0 ) );
 
-echo( "testing strIndexVector( string, delim= )" );
-echo( vec = strIndexVector( one, " " ) );
-echo( vec = strIndexVector( start, " " ) );
-echo( vec = strIndexVector( end, " " ) );
-echo( vec = strIndexVector( two, " " ) );
-echo( vec = strIndexVector( both, " " ) );
-echo( vec = strIndexVector( abcd, " " ) );
-echo( vec = strIndexVector( all, " " ) );
-echo( vec = strIndexVector( test, " " ) );
-echo( vec = strIndexVector( multi, " " ) );
-echo( vec = strIndexVector( multi, "  " ) );
-echo( vec = strIndexVector( mul3, " " ) );
-echo( vec = strIndexVector( mul3, "   " ) );
+echo( "testing strParseVector( string, delim= )" );
+echo( vec = strParseVector( one, " " ) );
+echo( vec = strParseVector( start, " " ) );
+echo( vec = strParseVector( end, " " ) );
+echo( vec = strParseVector( two, " " ) );
+echo( vec = strParseVector( both, " " ) );
+echo( vec = strParseVector( abcd, " " ) );
+echo( vec = strParseVector( all, " " ) );
+echo( vec = strParseVector( test, " " ) );
+echo( vec = strParseVector( multi, " " ) );
+echo( vec = strParseVector( multi, "  " ) );
+echo( vec = strParseVector( mul3, " " ) );
+echo( vec = strParseVector( mul3, "   " ) );
 
 function _index_vector( string, delim, pos, ion ) =
 	let( lastind = len(string)-1 )

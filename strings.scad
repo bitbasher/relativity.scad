@@ -1,12 +1,9 @@
-_strings_version = 
-	[2025, 03, 29, 1];
+_strings_version = [2025, 04, 17, 1];
 function strings_version() =
 	_strings_version;
-function strings_version_num() =
-	_strings_version.x * 10000 + 
-	_strings_version.y * 100 +
-	_strings_version.z +
-	_strings_version[3] / 10 ;
+function strings_version_str() =
+	let(s=_strings_version)
+	str( s.x, s.y, s.z, ".", s[3] );
 
 include <vectors.scad>
 include <logic.scad>
@@ -14,51 +11,101 @@ include <newsplit.scad>
 include <numbers.scad>
 include <recursion.scad>
 
-_ASCII_SPACE 	= 32;
-_ASCII_0 		= 48;
-_ASCII_9 		= _ASCII_0 + 9;
-_ASCII_UPPER_A 	= 65;
-_ASCII_UPPER_Z 	= _ASCII_UPPER_A + 25;
-_ASCII_LOWER_A 	= 97;
-_ASCII_CONVERT  = 97-65;
-_ASCII_LOWER_Z 	= _ASCII_LOWER_A + 25;
-_ASCII_UNDER    = ord( "_" );
 
-_CHAR_SPC = " ";	// blank
-_CHAR_TAB = "\t";	// tabchar
-_CHAR_NL  = "\n";	// new line char
-_CHAR_RET = "\r";	// carriage return char
+_DIGITS_STRING  = "0123456789";
+_NUMERIC_STRING = str( "+,-.", _DIGITS_STRING, "e" );
+_NUMPUNC_STRING = "+,-.e";
+_MATH_STRING    = "!%&()*+,-/<=>^"; // math & boolean operators
+_PUNC_STRING    = "!\"&'(),-./:;<>?@[\\]`{|}~";
+_NULL_STRING	= "";
+
+_LOWER_STRING  = "abcdefghijklmnopqrstuvwxyz";
+_UPPER_STRING  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 // _ASCII_SPACE must be the first element in the
 //  white space string and its derivatives for the
 //  is_whitespace function to work correctly
 _WHITESPACE = " \t\n\r"; // tab return newline blank
 
+_CHAR_SPC 		= " ";	// blank
+_CHAR_TAB 		= "\t";	// tabchar
+_CHAR_NL  		= "\n";	// new line char
+_CHAR_RET 		= "\r";	// carriage return char
+_CHAR_OPENPAREN = "(";
+_CHAR_CLOSPAren = ")";
+_CHAR_OPENBRACE = "{";
+_CHAR_CLOSBRACE = "}";
+_CHAR_OPENBRACK = "[";
+_CHAR_CLOSBRACK = "]";
+_CHAR_OPENANGLE = "<";
+_CHAR_CLOSANGLE = ">";
+_CHAR_UNDER     = "_";
+
+// the characters allowed in a variable name
+_VARNAME_STRING = str(_DIGITS_STRING,_UPPER_STRING,_CHAR_UNDER,_LOWER_STRING);
+
 // the double quote (") and backslash (\) are escaped by a backslash
-_ASCII_VISIBLE = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-_ASCII = str( _WHITESPACE, _ASCII_VISIBLE );
+_STRING_VISIBLE = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+_STRING_TEXT    = str( _CHAR_SPC, "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" );
+_STRING_LEGAL   = str( _WHITESPACE, _STRING_VISIBLE );
 
-_ASCII_OLD = " \t\n\r!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
-_ASCII_HACK = "\""; // only here to work around syntax highlighter deficiencies in certain text editors
-// likewise ...
+_ASCII_NULL		= 0;
+_ASCII_SPACE 	= 32;
+_ASCII_0 		= 48;
+_ASCII_9 		= _ASCII_0 + 9;
+_ASCII_UPPER_A 	= 65;
+_ASCII_UPPER_Z 	= _ASCII_UPPER_A + 25;
+_ASCII_LOWER_A 	= 97;
+_ASCII_LOWER_Z 	= _ASCII_LOWER_A + 25;
+_ASCII_UNDER    = ord( "_" );
 
-openParen = "(";
-closParen = ")";
-openBrace = "{";
-closBrace = "}";
-openBrack = "[";
-closBrack = "]";
+_ASCII_CONVERT  = _ASCII_LOWER_A-_ASCII_UPPER_A;
+
+_ASCII_DIGITS  = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
+
 
 
 // return a vector with the ASCII code values for each character in the string
 // simpler version doing same function
-function ascii_code( string ) = 
-	!is_string(string)?
-		undef
-    : [for( c=string ) ord(c) <= _ASCII_LOWER_Z+4 ? ord(c) : undef ]
+function str_to_ascii( string ) = 
+	is_not_string(string) ?
+		[]
+    : [for( c=string ) is_ascii(c) ? ord(c) : _ASCII_NULL ]
 	;
 
+// returns true if the given char is a legal ASCII character
+//  that is used in normal text. So TAB, NL etc are not allowed
+// this function is here to have direct access to
+//  the definition of _STRING_LEGAL as apposed to
+//  being placed in the logic.scan file
+function is_ascii( char ) = 
+	_is_in_set( char, _STRING_LEGAL );
+
+// return true if the given character (a string
+//  of only 1 character) is legal to be used in the
+//  name of an OpenSCAD variable name.
+// this function is here to have direct access to
+//  the definition of _VARNAME_STRING as apposed to
+//  being placed in the logic.scan file
+function _is_variable_safe(char) = 
+	is_not_string( char ) ?
+		undef
+	: _is_in_set( char, _VARNAME_STRING );
+
+function is_variable_name( string ) = 
+	is_not_string( string ) ?
+		undef
+	: let( lastInd = len(string)-1)
+		_is_variable_name( string, lastInd )
+	;
+
+function _is_variable_name( string, i ) =
+	i == 0 ?
+		_is_in_set( string[0], _VARNAME_STRING )
+	:  
+		_is_variable_name( string, i-1 ) && _is_in_set( string[i], _VARNAME_STRING )
+	;
 
 // return "true" if the characters of "string", starting from the 
 //  the given position, "pos", match the given reference string,
@@ -105,27 +152,6 @@ function ends_with( string, refString, ignore_case=false ) =
 		)
 	;
 
-function is_not_string( string ) =
-	is_undef( string ) || ! is_string( string );
-
-
-// return true if the given string is empty
-//  but it must exist or we return undef
-function str_is_empty(string) = 
-	is_not_string( string ) ?
-		undef
-	: 
-		string == ""
-	;
-
-
-// return true when given string is undefined, OR
-//  is empty, meaning the null string ( "" )
-//  or undef if the input is not a string
-function str_is_undef_or_empty(string) = 
-	! is_string( string ) ?
-		undef
-	: is_undef(string) || string == "" ;
 
 
 // unused function
@@ -172,15 +198,15 @@ function trim(string) =
 // If it matches return the position in string AFTER the pattern.
 // starts_with() does all the checking for correct inputs
 //  and will return "false" if pattern=="" or the pattern
-//  does not match .. but functions using _match() use
+//  does not match .. but functions using _match_pat() use
 //  the on_coalesce() recursion function so all cases of
 //  failure to match are coerced to undef
-function _match(string, pattern, pos, ignore_case=false ) = 
+function _match_pat(string, pattern, pos, ignore_case=false ) = 
     let( result = starts_with(string, pattern, pos, ignore_case=ignore_case) )
 	is_undef( result ) || ! result ?
 		undef
     : pos+len(pattern) ;
-    
+
 
 /*
 	Return the index of the NEXT char in string that does NOT
@@ -210,8 +236,8 @@ function _match_set( string, set, pos=0 ) =
 		pos // index of first char NOT in the set at this level of recursion
 	;
 
-// return index of any character of "set" that occurs in the
-//  given string starting from the end of the string
+// return index of the character in the given string that is
+//  any character of the given set, starting from the given position
 function _match_set_reverse(string, set, pos) = 
 	pos <= 0?
 		0
@@ -223,34 +249,35 @@ function _match_set_reverse(string, set, pos) =
 
 // return true if the given character is in the given set
 //  char must be a string containing a single character
-//  set must be a string of valid ASCII characters
+//  set must be a string
 function _char_in_set( char, set, ignore_case=false ) =
-	is_not_string(  char ) ?
+	is_not_string(  char ) || is_not_string(  set ) ?
 		false // TODO maybe undef ?
 	: str_is_undef_or_empty( set ) ?
 		false // TODO maybe undef ?
 	: len( char ) != 1 ?
 		false // TODO maybe undef ?
-	: 
-		any([ 
-			for (i = [0:len(set)-1]) _str_equals( char, set[i], ignore_case=ignore_case )
-			])
+	: _is_in_set( char, set, ignore_case=ignore_case )
 	;
  
- // no checking version of char in set
+ // no checking version of _char_in_set
 function _is_in_set( char, set, ignore_case=false ) =
-    any([ 
-		for (i = [0:len(set)-1]) _str_equals( char, set[i], ignore_case=ignore_case )
-		])
+   let(
+		ch = ignore_case ? lower(char) : char,
+		st = ignore_case ? lower(set)  : set
+		) 
+	search( ch, st ) != []
 	;
 
-function _is_variable_safe(code) = 
+
+/* TODO
 	is_not_num( code ) ?
 		undef
-	: _code_in_range(code, _ASCII_0, _ASCII_9) ||
-	  _code_in_range(code, _ASCII_UPPER_A, _ASCII_UPPER_Z) ||
-	  _code_in_range(code, _ASCII_LOWER_A, _ASCII_LOWER_Z) ||
+	: num_in_range(code, _ASCII_0, _ASCII_9) ||
+	  num_in_range(code, _ASCII_UPPER_A, _ASCII_UPPER_Z) ||
+	  num_in_range(code, _ASCII_LOWER_A, _ASCII_LOWER_Z) ||
 	  code == _ASCII_UNDER;
+*/
 
 function str_equals(this, that, ignore_case=false) = 
 	is_not_string(this) || is_not_string(that) ?
@@ -265,7 +292,7 @@ function str_equals(this, that, ignore_case=false) =
 
 function _str_equals(this, that, ignore_case=false) = 
 	ignore_case ?
-		_lower(this) == _lower(that)
+		lower(this) == lower(that)
 	:
 		this==that
 	;
@@ -284,9 +311,10 @@ function upper(string) =
 	;
 
 function _upper(string) = 
-	let(code = ascii_code(string))
-	str_vector_join([for (c = code) 
-			_code_in_range( c, _ASCII_LOWER_A, _ASCII_LOWER_Z ) ?
+	let(code = str_to_ascii(string))
+	str_vector_join(
+		[for (c = code) 
+			num_in_range( c, _ASCII_LOWER_A, _ASCII_LOWER_Z ) ?
                 chr(c-_ASCII_CONVERT)
             :
                 chr(c)
@@ -298,11 +326,11 @@ function lower(string) =
 		undef
 	: str_is_empty( string ) ?
 		""
-	: _lower( string )
+	: ascii_lower( str_to_ascii(string) )
 	;
 
-function _lower(string) = 
-	let(code = ascii_code(string), lastInd=len(code)-1)
+function ascii_lower( code ) = 
+	let(lastInd=len(code)-1)
     str_vector_join( [for (c = code)
 			c >= _ASCII_UPPER_A && c <= _ASCII_UPPER_Z?
                 chr(c+_ASCII_CONVERT)
@@ -321,31 +349,20 @@ function title(string) =
 	: str_is_allspaces( string ) ?
 		string
 	:
-		_title( string )
+		to_title_vec( new_split( lower(string) )  )
 	;
 
-function _title(string) =
-    let( word_vec = new_split( lower(string) ) )
-
-	is_undef( word_vec) ?
+// set all elements of the given vector of words
+//  to Title Case
+function to_title_vec(word_vec) =
+	is_not_list( word_vec) || len(word_vec) <= 0 ?
 		undef
-	: len(word_vec) <= 0 ?
-		undef
-	: len( word_vec ) == 1 ?
-		first_cap( string )
     : str_vector_join(
-		[ for(word = word_vec )
-        	str( upper(word[0]), after(word, 0) )
-    	]
-		)
+		[ for(word = word_vec ) first_cap( word ) ] )
 	;
 
 function first_cap( word ) =
-	len( word ) == 1 ?
-		upper[0]
-	:
-		str( upper(word[0]), after(word, 0) )
-	;
+	str( upper(word[0]), after(word, 0) );
 
 function reverse(string) = 
 	is_not_string( string ) ?
@@ -452,18 +469,17 @@ function before(string, upto=0) =
 
 
 // returns the string AFTER start, so specifically not
-//  including the start character
-// THUS wheile the smallest index for a string is zero,
-//  the smallest start position for this function is index=1
-function after(string, start=0) =
-	is_not_string( string ) || is_not_num( start ) ?
+//  including the character at "start"
+// The smallest start position for this function is 1
+function after(string, afterThis=0) =
+	is_not_string( string ) || is_not_num( afterThis ) ?
 		undef
-	: start < 0?
+	: afterThis < 0?
 		undef 
-	: start >= len(string)-1 ? // past the last index
+	: afterThis >= len(string)-1 ? // past the last index
 		""
-	: 
-		_sub_by_index( string, start+1, len(string)-1 ) ;
+	: let( start=afterThis+1, lastInd=len(string)-1)
+		_sub_by_index( string, start, lastInd ) ;
 	
 
 // returns the string STARTING FROM start to end
@@ -488,7 +504,8 @@ function parse_int(string) =
 	numstr[0] == "-" ? 
 		-1 * _parse_whole( after( numstr, 0 ) ) 
 	: 
-		_parse_whole( numstr );
+		_parse_whole( numstr )
+	;
 
 function _parse_whole( string, base=10, pow=0, pos=undef ) =
 	is_undef( pos ) ?
@@ -628,12 +645,12 @@ function _index_of_first(string, delim=" ", pos=0 ) =
 		undef // we are off the end of the string
 	: _coalesce_on(
 			// try to match the delimiter at current pos.
-			//  _match returns the index of the NEXT char in string
+			//  _match_pat returns the index of the NEXT char in string
 			//  that does NOT match any of the characters in the set.
-			// SO .. we return the [pos,_match] vector
-		[pos, _match( string, delim, pos )], 
+			// SO .. we return the [pos,_match_pat] vector
+		[pos, _match_pat( string, delim, pos )], 
 			// ELSE
-			//  the delim was NOT found, and _match() returned
+			//  the delim was NOT found, and _match_pat() returned
 			//  undef as a signal in the .y position
 		[pos, undef],
 			// and .. given the failure to match the
@@ -665,7 +682,7 @@ function str_split( string, separator=" " ) =
 
 // INPUTS
 //  the given string that we will extract words from
-//  the list of delimeter instances
+//  the list of delimiter instances
 //  the index into the delimiter list that we are to consider
 // called from str_split() the pos param will default to 0 NB!
 function _str_split(string, indices, i=0) = 
@@ -726,19 +743,59 @@ function stringBlanks( qty, i=1 ) =
     : str( " ", stringBlanks( qty, i+1 ) ) ;
 
 
-function str_vector_join( arrayOfStrings, delimeter="" ) = 
-	is_not_list( arrayOfStrings ) ?
+function str_vector_join( strvec, delimiter="" ) = 
+	is_not_list( strvec ) ?
 		undef
-	: arrayOfStrings == [] ?
+	: strvec == [] ?
 		""
-	: _str_vector_join(arrayOfStrings, len(arrayOfStrings)-1, delimeter=delimeter );
+	: _str_vector_join(strvec, len(strvec)-1, delimiter=delimiter );
 
-function _str_vector_join( arrayOfStrings, index, delimeter="") = 
-	index==0 ? 
-		str( arrayOfStrings[0] ) // finish recursion at start of string
-	: str( _str_vector_join( arrayOfStrings, index-1, delimeter ), 
-			delimeter,
-			arrayOfStrings[index]
+function _str_vector_join( strvec, index=undef, delimiter="") =
+	is_undef( index ) ?
+		_str_vector_join( strvec, len(strvec)-1, delimiter=delimiter )
+	: index==0 ? 
+		str( strvec[0] ) // finish recursion at start of string
+	: index >= len(strvec) ?
+		_str_vector_join( strvec, index-1, delimiter=delimiter )
+	:
+		str( _str_vector_join( strvec, index-1, delimiter=delimiter ), 
+			delimiter,
+			strvec[index]
 			) ;
 
+function str_join( strvec, delimiter="" ) =
+	let( str=chr( 
+    	[ for(w=strvec) [
+			[for( c=w ) ord(c) ], 
+    		[for(d=delimiter) ord(d) ]
+			]
+		]) 
+    	)
+	delimiter == "" ? str : before( str, len(str)-len(delimiter) )
+	;
 
+function alt_join( strvec, delimiter="" ) =
+    let( str=chr( [ for(w=strvec)
+		[
+        is_num(w) ? 		[for( s=str(w) ) ord(s)]
+        : is_list(w) ? 		_alt_join(w, delimiter=delimiter)
+        : is_string(w) ? 	[for( c=w )ord(c)]
+        : ["x"] // we do not handle objects yet
+        , [for(d=delimiter)ord(d)]
+        ] ]
+        ) )
+    delimiter == "" ? str : before(str,len(str)-len(delimiter))
+    ;
+
+function _alt_join( strvec, delimiter="" ) =
+	let( lensv = len(strvec) )
+    [ for(i=[0:lensv-1])
+		let( w=strvec[i])
+		[
+        is_num(w) ? 	 [for( s=str(w) ) ord(s)]
+        : is_list(w) ? 	 _alt_join( w, delimiter=delimiter )
+        : is_string(w) ? [for( c=w )ord(c)]
+        : ["x"]  // we do not handle objects yet
+        , i<lensv-1 ? [for(d=delimiter)ord(d)] : []
+        ] ]
+    ;
