@@ -56,13 +56,13 @@ echo(	"\tstarts_with ignore case" );
 assert( starts_with( ts, "IS", 5, true ) ); // should match
 assert( starts_with( mts, "IS", 5, true ) );
 //echo( null30= starts_with( mts, "IS", 30, true ) );
-assert( ! starts_with( mts, "IS", 30, true ) );
+assert( ! starts_with( mts, "IS", 30, true ) ); // set to start after end of string mts
 assert( ! starts_with( mts, "", 5, true ) );
 assert( starts_with( mts, " ", 4, true ) );
-//echo( null5= starts_with( "xxx", "x", 5, true ) );
-assert( ! starts_with( "xxx", "x", 5, true ) );
+//echo( null5= starts_with( "xxx", "x", 5, true ) ); // match is longer than string - cannot match
+assert( ! starts_with( "xxx", "x", 5, true ) ); // also not when ignoring case
 assert( ! starts_with( "", "test", -1, true ) );
-assert( starts_with( ts, "his", 1, true ) );
+assert( starts_with( ts, "his", 1, true ) ); // we chect starting at index 1
 
 
 echo( "testing _match_pat()" );
@@ -147,12 +147,12 @@ assert( _match_set( "aaabbbcccaaa",   "a",  pos20 ) == pos12 );
 assert( _match_set( "aaabbbcccaaa",  "ac",  pos6 ) == pos12 );//12 correct
 assert( _match_set( "aaabbbcccaaa", "abc",  pos6 ) == pos12 );// 12 correct
 
-echo( "testing _char_in_set" );
-assert( _char_in_set( " ", " " ) );
-assert( _char_in_set( " ", "abc " ) );
-assert( _char_in_set( " ", " abc " ) );
-assert( _char_in_set( "c", "abc " ) );
-assert( ! _char_in_set( "z", "abc " ) );
+echo( "testing char_in_set" );
+assert( char_in_set( " ", " " ) );
+assert( char_in_set( " ", "abc " ) );
+assert( char_in_set( " ", " abc " ) );
+assert( char_in_set( "c", "abc " ) );
+assert( ! char_in_set( "z", "abc " ) );
 
 assert( _match_set( ts, " "    ) == pos0 );   // 0 - not found
 assert( _match_set( ts, " ", 4 ) == pos5 );   // 5
@@ -200,7 +200,10 @@ multi = "  mul  ti  ";
 mul3  = "mul   ti   ple   ";
 abcd  = " a b c d ";
 
-echo( "testing _index_of_first()" );
+echo( "\n\ttesting str_index()" );
+assert( str_index( ts ) == [4,7,9] );
+
+echo( "\n\ttesting _index_of_first()" );
 
 fnull  = _index_of_first( null  );
 fone   = _index_of_first( one   );
@@ -368,7 +371,9 @@ assert(  _index_of( multi, "  ", 0 ) == imul2 );
 assert(  _index_of( mul3,  " " , 0 ) == imul3 );
 assert(  _index_of( mul3, "   ", 0 ) == imul33 );
 
-echo( "testing strIndexVector( string, delim= )" );
+echo( "\n\ttesting strIndexVector( string, delim= )" );
+if( _TEST_ENABLED_ ) {
+echo( null = strIndexVector( null ) );
 echo( one  = strIndexVector( one ) );
 echo( two  = strIndexVector( two ) );
 echo( start= strIndexVector( start ) );
@@ -381,10 +386,23 @@ echo( multi= strIndexVector( multi ) );
 echo( mul2 = strIndexVector( multi, delim="  " )  );
 echo( mul3 = strIndexVector( mul3) );
 echo( mul33= strIndexVector( mul3, delim="   " ) );
+}
 
+assert( is_undef( strIndexVector( null ) ) );
+assert( strIndexVector( one )   == [] );
+assert( strIndexVector( two )   == [[3,4]] );
+assert( strIndexVector( start ) == [[0,1]] );
+assert( strIndexVector( end )   == [[3,4]] );
+assert( strIndexVector( both )  == [[0, 1], [5, 6]] );
+assert( strIndexVector( all )   == [[0, 1], [4, 5], [8, 9]] );
+assert( strIndexVector( test )  == [[4, 5], [7, 8], [9, 10]] );
+assert( strIndexVector( abcd )  == [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]] );
+assert( strIndexVector( multi ) ==  [[0, 1], [1, 2], [5, 6], [6, 7], [9, 10], [10, 11]] );
+assert( strIndexVector( multi, delim="  " ) == [[0, 2], [5, 7], [9, 11]] );
+assert( strIndexVector( mul3)   ==  [[3, 4], [4, 5], [5, 6], [8, 9], [9, 10], [10, 11], [14, 15], [15, 16], [16, 17]] );
+assert( strIndexVector( mul3, delim="   " ) == [[3, 6], [8, 11], [14, 17]] );
 
-
-echo( "testing str_split( string, delim )" );
+echo( "\n\ttesting str_split( string, delim )" );
 
 if( _TEST_ENABLED_ ) {
 echo( blk1=str_split( manyBlanksString, " " ) ); // == [" ", " ", "test", " ", " ", "with", "blanks", " ", " "] );
@@ -440,7 +458,7 @@ assert(   _new_split( mul3,  imul3   ) == smul3 );
 assert(   _new_split( mul3,  imul33  ) == smul33 );
 
 
-echo( "\n\ttesting new_split ( string, separator )" );
+echo( "\n\ttesting new_split ( string, delimiter )" );
 if( _TEST_ENABLED_ ) {
 echo( blk1=new_split( manyBlanksString, " " ) ); // == [" ", " ", "test", " ", " ", "with", "blanks", " ", " "] );
 echo( blk2=new_split( manyBlanksString, "  ") ); // == ["  ", "test", "  ", "with blanks", "  "] );
@@ -488,17 +506,17 @@ echo( tmul33 = tmul3  );
 
 assert(  new_split( ts, null  ) == tsnull );
 assert(  new_split( null  )     == tnull );
-assert(  new_split( one   ) == tone );
-assert(  new_split( two   ) == ttwo );
-assert(  new_split( start ) == tstart );
-assert(  new_split( end   ) == tend );
-assert(  new_split( abcd  ) == tabcd );
-assert(  new_split( both  ) == tboth );
-assert(  new_split( all   ) == tall ); 
-assert(  new_split( test  ) == ttest );
-assert(  new_split( multi ) == tmulti );
+assert(  new_split( one   )     == tone );
+assert(  new_split( two   )     == ttwo );
+assert(  new_split( start )     == tstart );
+assert(  new_split( end   )     == tend );
+assert(  new_split( abcd  )     == tabcd );
+assert(  new_split( both  )     == tboth );
+assert(  new_split( all   )     == tall ); 
+assert(  new_split( test  )     == ttest );
+assert(  new_split( multi )     == tmulti );
 assert(  new_split( multi, "  " ) == tmul2 );
-assert(  new_split( mul3  ) == tmul3 );
+assert(  new_split( mul3  )     == tmul3 );
 assert(  new_split( mul3, "   " ) == tmul33 );
 
 echo( "\n\ttesting _split_only( ... dot ) for floats" );
@@ -520,7 +538,22 @@ echo( _new_split( "12.2", _index_of( "12.2", "." ) ) );
 echo( _new_split(   ".2", _index_of(   ".2", "." ) ) );
 }
 
-echo( "testing _parse_float(sections)" );
+assert( _index_of( "12",   "." ) == []);
+assert( _index_of( "12.",  "." ) == [[2,3]] );
+assert( _index_of( "12.2", "." ) == [[2,3]] );
+assert( _index_of(   ".2", "." ) == [[0,1]] );
+
+assert( _split_only( "12",   _index_of( "12",   "." ) ) == ["12"] );
+assert( _split_only( "12.",  _index_of( "12.",  "." ) ) == ["12"] );
+assert( _split_only( "12.2", _index_of( "12.2", "." ) ) == ["12","2"] );
+assert( _split_only(   ".2", _index_of(   ".2", "." ) ) == ["2"] );
+
+assert( _new_split( "12",   _index_of( "12",   "." ) ) == ["12"] );
+assert( _new_split( "12.",  _index_of( "12.",  "." ) ) == ["12"," "] );
+assert( _new_split( "12.2", _index_of( "12.2", "." ) ) == ["12"," ","2"] );
+assert( _new_split(   ".2", _index_of(   ".2", "." ) ) == [" ","2"] );
+
+echo( "\ttesting _parse_float(sections)" );
 
 // echo( ff0 = float_fraction( "1", 0 ) );
 assert( float_fraction( "1", 0 ) == 0.1   );
@@ -575,7 +608,7 @@ assert( parse_float( "-12.456" ) == -12.456);
 assert( parse_float( "-0.456" )  == -0.456);
 assert( parse_float( "-.456" )   == -0.456);
 
-echo( "testing title()" );
+echo( "\n\ttesting title()" );
 assert( is_undef( title( [] ) ) );
 assert( title( "" ) == nullString );
 threeBlanks = "   ";

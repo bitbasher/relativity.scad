@@ -13,11 +13,170 @@ tsQty = len(ts);
 
 numbers = "some 123 numb 15.5 ers, a-23nd pun5556; tations99";
 
-foobar = "!@#$1234foobar@#$1234";
-FOOBAR = "!@#$1234 FOOBAR !@#$1234";
+foobar = "!@#$1234foobar!@#$1234";
+FOOBAR = "!@#$1234FOOBAR!@#$1234";
+SPCBAR = "!@#$1234 FOOBAR !@#$1234";
 illegalCodes = "\u20AC 10 \u263A"; // UNICODE for the euro symbol, code 10, and a smilie;
 
-echo( "testing str_to_ascii" );
+echo( "\ttesting _is_in_set" );
+if( _TEST_ENABLED_ ) {
+echo( f=_is_in_set( "",  _LOWER_STRING ) );  // f
+echo( t=_is_in_set( "a", _LOWER_STRING ) );
+echo( f=_is_in_set( "a", _UPPER_STRING ) );  // f
+
+echo( f=_is_in_set( "A", _LOWER_STRING ) );  // f
+echo( t=_is_in_set( "A", _UPPER_STRING ) );
+
+echo( f=_is_in_set( 9, _LOWER_STRING )   );  // f
+echo( f=_is_in_set( [9], _LOWER_STRING ) );  // f
+echo( b=search( [9],   [8,9,42])         );  // [[]] 
+echo( b=search( [9],  _LOWER_STRING )    );  // [[]] 
+echo( t=_is_in_set( [9], [8,9,42] )      );  // t
+echo( f=_is_in_set( [],  [8,9,42] )      );  // f
+echo( t=_is_in_set(  9,  [8,9,42] )      );  // t
+
+echo( t=_is_in_set( "ab", _LOWER_STRING ) ); // t
+echo( f=_is_in_set( "AB", _LOWER_STRING ) ); // f
+echo( t=_is_in_set( "aB", _LOWER_STRING ) ); // t
+echo( t=_is_in_set( [7,8], [7,8,9,42]   ) ); // t
+echo( f=_is_in_set( [7,8], [42,43,44]   ) ); // f
+echo( t=search( [7,8], [7,8,9,42] ) ); // [0,1] 7 at 0th, 8 at 1st
+echo( f=search( [7,8], [42,43,44] ) ); // [[],[]] 
+echo( f=search( [3],   [8,9,42]) );    // [[]] 
+echo( f=search(  3,    [8,9,42]) );    // [] so --> f, correct
+echo( f=_is_in_set( 3, [8,9,42] ) );   // f
+}
+
+assert( ! _is_in_set( "",  _LOWER_STRING ) );  // f
+assert(   _is_in_set( "a", _LOWER_STRING ) );
+
+assert( ! _is_in_set( "A", _LOWER_STRING ) );  // f
+assert(   _is_in_set( "A", _UPPER_STRING ) );
+
+assert( ! _is_in_set(  9,  _LOWER_STRING ) );  // f
+assert(   _is_in_set( [9], _LOWER_STRING ) );  // t should be f
+assert(   _is_in_set( 9, [8,9,42] ) );         // t
+
+assert(   _is_in_set( "ab", _LOWER_STRING ) ); // t
+assert( ! _is_in_set( "AB", _LOWER_STRING ) ); // f
+assert(   _is_in_set( "aB", _LOWER_STRING ) ); // t
+assert(   _is_in_set( [7,8], [7,8,9,42]   ) ); // t
+assert(   _is_in_set( [7,8], [42,43,44]   ) ); // t should be f
+assert( search( [7,8], [7,8,9,42] ) == [0,1] );// 7 at 0th, 8 at 1st
+assert( search( [7,8], [42,43,44] ) == [[],[]] ); // false positive
+assert( search( [3],   [8,9,42]   ) == [[]] );    // false positive
+assert( search(  3,    [8,9,42]   ) == [] );   // so --> f, correct
+assert( ! _is_in_set( 3, [8,9,42] ) );   // f
+
+
+echo( "\ttesting is_in_set" );
+if( _TEST_ENABLED_ ) {
+echo( f=is_in_set( "",  _LOWER_STRING ) );  // f
+echo( t=is_in_set( "a", _LOWER_STRING ) );
+echo( f=is_in_set( "a", _UPPER_STRING ) );  // f
+
+echo( f=is_in_set( "A", _LOWER_STRING ) );  // f
+echo( t=is_in_set( "A", _UPPER_STRING ) );
+
+echo( f=is_in_set( 9, _LOWER_STRING )   );  // f
+echo( b=search( [9],   [8,9,42])         );  // [[]] 
+echo( b=search( [9],  _LOWER_STRING )    );  // [[]]
+echo( f=is_in_set( [9], _LOWER_STRING ) );  // f
+echo( t=is_in_set( [9], [8,9,42] )      );  // t
+echo( f=is_in_set( [],  [8,9,42] )      );  // f
+echo( t=is_in_set(  9,  [8,9,42] )      );  // t
+
+echo( t=is_in_set( "ab", _LOWER_STRING ) ); // t
+echo( f=is_in_set( "AB", _LOWER_STRING ) ); // f
+echo( t=is_in_set( "aB", _LOWER_STRING ) ); // t
+echo( t=is_in_set( [7,8], [7,8,9,42]   ) ); // t
+echo( f=is_in_set( [7,8], [42,43,44]   ) ); // f
+echo( c=search( [7,8], [7,8,9,42] ) ); // [0,1] 7 at 0th, 8 at 1st
+echo( c=search( [8,7], [7,8,9,42] ) ); // [1,0] 8 at 1st, 7 at 0th
+    // order of match vector is preserved in the result
+echo( c=search( [7,8], [42,43,44] ) ); // [[],[]] 
+echo( c=search( [3],   [8,9,42]) );    // [[]] 
+echo( f=is_in_set( [3], [8,9,42] ) );   // f
+echo( c=search( 3, [8,9,42]) );    // [] so --> f, correct
+echo( f=is_in_set( 3, [8,9,42] ) );   // f
+}
+
+assert( ! is_in_set( "",  _LOWER_STRING ) );  // f
+assert(   is_in_set( "a", _LOWER_STRING ) );
+
+assert( ! is_in_set( "A", _LOWER_STRING ) );  // f
+assert(   is_in_set( "A", _UPPER_STRING ) );
+
+assert( ! is_in_set(  9,  _LOWER_STRING ) );  // f
+assert( ! is_in_set( [9], _LOWER_STRING ) );  // f
+assert(   is_in_set( 9, [8,9,42] ) );         // t
+
+assert(   is_in_set( "ab", _LOWER_STRING ) ); // t
+assert( ! is_in_set( "AB", _LOWER_STRING ) ); // f
+assert(   is_in_set( "aB", _LOWER_STRING ) ); // t
+assert(   is_in_set( [7,8], [7,8,9,42]   ) ); // t
+assert( ! is_in_set( [7,8], [42,43,44]   ) ); // f
+assert( search( [7,8], [7,8,9,42] ) == [0,1] );// 7 at 0th, 8 at 1st
+assert( search( [7,8], [42,43,44] ) == [[],[]] ); // false correct
+assert( search( [3],   [8,9,42]   ) == [[]] );    // false correct
+assert( ! is_in_set( [3], [8,9,42]   ) );
+assert( search(  3,    [8,9,42]   ) == [] );   // false correct
+assert( ! is_in_set( 3, [8,9,42] ) );   // f
+
+
+echo( "\ttesting char_in_set" );
+if( _TEST_ENABLED_ ) {
+echo( char_in_set( "",  _LOWER_STRING ) );  // f
+echo( char_in_set( "a", _LOWER_STRING ) );  // t
+echo( char_in_set( "a", _UPPER_STRING ) );  // f
+echo( char_in_set( "ab", _LOWER_STRING ) ); // t
+
+echo( char_in_set( "A", _LOWER_STRING ) );  // f
+echo( char_in_set( "A", _UPPER_STRING ) );  // t
+echo( char_in_set( "A", _LOWER_STRING, ignore_case=true ) ); //t
+
+echo( char_in_set( 9, _LOWER_STRING ) );     // f
+echo( char_in_set( [9], _LOWER_STRING ) );   // f, need same types
+echo( char_in_set( 9, [8,9,42] ) );          // f
+}
+
+assert( ! char_in_set( "",  _UPPER_STRING ) );  // f
+assert(   char_in_set( "a", _LOWER_STRING ) );  // t
+//echo( chr=char_to_lower("a"));
+//echo( chr=char_to_lower("A"));
+//echo( chr=    lower(_UPPER_STRING));
+//echo( chr=str_lower(_UPPER_STRING));
+assert( ! char_in_set( "a",  _UPPER_STRING ) );
+assert(   char_in_set( "a",  _UPPER_STRING, ignore_case=true ) );
+
+assert( ! char_in_set( "A", _LOWER_STRING ) );  // f
+assert(   char_in_set( "A", _UPPER_STRING ) );  // t
+assert(   char_in_set( "A", _LOWER_STRING, ignore_case=true ) ); //t
+
+assert( ! char_in_set( 9, _LOWER_STRING ) );     // f
+assert( ! char_in_set( [9], _LOWER_STRING ) );   // f cant be list
+assert( ! char_in_set( 9, [8,9,42] ) );          // f, inputs are not strings
+
+assert( ! char_in_set( "ab", _LOWER_STRING ) ); // multiple chars blocked
+assert( ! char_in_set( "AB", _LOWER_STRING, ignore_case=true ) ); // ditto
+assert( ! char_in_set( [7,8], [7,8,9,42]   ) ); // still no lists
+assert( ! char_in_set( 3, [8,9,42] ) );   // f
+
+
+echo( "\ttesting char_in_set even more" );
+assert(   char_in_set("t",  ts) );
+assert( ! char_in_set("T",  ts) );
+assert(   char_in_set("T",  mts) );
+assert( ! char_in_set("x",  ts) );
+assert( ! char_in_set( 12,  ts) );
+assert( ! char_in_set( ts, "T" ) ); // false
+assert(   char_in_set("T",  ts, true ) );
+assert( ! char_in_set("x",  ts, true) );
+assert( ! char_in_set( 12,  ts, true) );
+assert( ! char_in_set( ts, "T", true ) ); // first param, char, must be a single character
+
+
+echo( "\ttesting str_to_ascii" );
 
 if( _TEST_ENABLED_ ) {
 echo( legal = ts );
@@ -46,14 +205,17 @@ assert( len( str_to_ascii( undef ) ) == 0 );
 //echo( str_to_ascii( _ASCII_ALL ) );
 
 
-echo( "testing boolean test functions" );
+echo( "testing boolean functions" );
+/* we will not test is_ascii() as it only calls _is_in_set()
+   which is very well tested indeed
+ */
+
 echo( "\ttesting _is_variable_safe" );
 
 assert(   _is_variable_safe( "a" ) );
 assert( ! _is_variable_safe( 42 ) );
 assert(   _is_variable_safe( "_" ) );
 assert( ! _is_variable_safe( " " ) );
-
 
 echo( "\ttesting _is_variable_name" );
 if( _TEST_ENABLED_ ) {
@@ -171,8 +333,6 @@ assert( str_vector_join([], "") == "" );
 assert( str_vector_join([], " ") == "" );
 assert( str_vector_join([], ",") == "" );
 
-
-
 echo( "\n\ttesting str_join()" );
 assert( str_join( ["a","b","c"] ) == "abc" );
 assert( str_join( [] )  == "" );
@@ -191,7 +351,8 @@ assert( str_join(["foo"], ",") == "foo" );
 //assert( str_join([], "") == "" );
 //assert( str_join([], " ") == "" );
 //assert( str_join([], ",") == "" );
-
+assert( str_join( ["this","is","a","test"] ) == "thisisatest" );
+assert( str_join( ["this","is","a","test"], delimiter=" " ) == ts );
 
 echo( "\n\ttesting alt_join()" );
 if( _TEST_ENABLED_ ) {
@@ -448,9 +609,9 @@ assert( str_between_indecies( "short", 0, 6) == "short" );
 
 assert( is_undef( str_between_indecies( "short", 1, 0) ) ); // undef as start is > end
 assert( str_between_indecies( "short", 1, 1) ==  "" ); // start == end
-assert( str_between_indecies( "short", 1, 2) ==  "h" ); // corrent
-assert( str_between_indecies( "short", 1, 3) ==  "ho" ); // corrent
-assert( str_between_indecies( "short", 1, 4) ==  "hor" ); // corrent
+assert( str_between_indecies( "short", 1, 2) ==  "h" ); // correct
+assert( str_between_indecies( "short", 1, 3) ==  "ho" ); // correct
+assert( str_between_indecies( "short", 1, 4) ==  "hor" ); // correct
 assert( str_between_indecies( "short", 1, 5) ==  "hort" ); // hor
 assert( str_between_indecies( "short", 1, 6) ==  "hort" ); // hor
 
@@ -477,6 +638,7 @@ assert( is_undef( str_between_indecies( ts,  7,  5) ) );
 
 
 echo( "testing _str_sub_from_for:" );
+
 echo( "\tfrom to last" );
 assert( _str_sub_from_for( "short", 0,5 )  == "short" );
 assert( _str_sub_from_for( "short", 1,5 )  == "hort" );
@@ -488,7 +650,7 @@ assert( is_undef( _str_sub_from_for( "short", 6,5 ) ) );
 
 
 echo( "\tfrom for" );
-assert( is_undef( _str_sub_from_for( "short", 0, 0 ) ) );
+assert( _str_sub_from_for( "short", 0, 0 ) == "" );
 assert( _str_sub_from_for( "short", 0, 1 ) == "s" );
 assert( _str_sub_from_for( "short", 0, 2 ) == "sh" );
 assert( _str_sub_from_for( "short", 0, 3 ) == "sho" );
@@ -504,16 +666,23 @@ assert( _str_sub_from_for( "short", 4, 3) == "t" );
 
 echo( "\tspecial cases" );
 assert( _str_sub_from_for( "short", 2,  2 ) == "or" );
-assert( is_undef( _str_sub_from_for( "short", 2, -2 ) ) );
-assert( is_undef( _str_sub_from_for( "short", 2, 0  ) ) );
+assert( _str_sub_from_for( "short", 2, -2 ) == "" );
+assert( _str_sub_from_for( "short", 2, 0  ) == "" );
 
 
 echo( "testing str_sub_from_for:" );
+echo( "\tdefaults" );
+assert( str_sub_from_for( "Correct" )      == "Correct" );
+assert( str_sub_from_for( "xCorrect", 1 )  == "Correct" );
+assert( str_sub_from_for( "xCorrect", 1, 7 )== "Correct" );
+
+echo( "\tdbad inputs" );
 assert( is_undef( str_sub_from_for( 42) ) );
 assert( is_undef( str_sub_from_for( []) ) );
 assert( is_undef( str_sub_from_for( ts, 50, 2) ) );
 
 echo( "\tonly from" );
+assert( str_sub_from_for( "short"    ) == "short" );
 assert( str_sub_from_for( "short", 0 ) == "short" );
 assert( str_sub_from_for( "short", 1 ) == "hort" );
 assert( str_sub_from_for( "short", 2 ) == "ort" );
@@ -528,7 +697,6 @@ assert( str_sub_from_for( "short", 0, 1 ) ==  "s" );
 assert( str_sub_from_for( "short", 0, 2 ) ==  "sh" );
 assert( str_sub_from_for( "short", 0, 3 ) ==  "sho" );
 assert( str_sub_from_for( "short", 0, 4 ) ==  "shor" );
-
 assert( str_sub_from_for( "short", 0, 5 ) ==  "short" );
 assert( str_sub_from_for( "short", 0, 6 ) ==  "short" );
 
@@ -539,39 +707,40 @@ assert( str_sub_from_for( "short", 4, 1) == "t" );
 assert( str_sub_from_for( "short", 4, 3) == "t" );
 
 echo( "\tspecial cases" );
-assert( str_sub_from_for( "short" ) == "short" );
-assert( str_sub_from_for( "short", 2, 2 )  == "or" );
 assert( str_sub_from_for( "short", 2, -2 ) == _NULL_STRING );
 assert( str_sub_from_for( "short", 2, 0 )  == _NULL_STRING );
 
 
-echo( "testing _char_in_set:" );
-assert(   _char_in_set("t",  ts) );
-assert( ! _char_in_set("T",  ts) );
-assert(   _char_in_set("T",  mts) );
-assert( ! _char_in_set("x",  ts) );
-assert( ! _char_in_set( 12,  ts) );
-assert( ! _char_in_set( ts, "T" ) ); // false
-assert(   _char_in_set("T",  ts, true ) );
-assert( ! _char_in_set("x",  ts, true) );
-assert( ! _char_in_set( 12,  ts, true) );
-assert( ! _char_in_set( ts, "T", true ) ); // first param, char, must be a single character
 
 echo( "testing lower()" );
 assert( is_undef( lower( 42 ) ) );
 assert( lower( "" ) == "" );
 assert( lower( "  " ) == "  " );
 assert( is_undef( lower( 32 ) ) );
-assert( lower("!@#$1234FOOBAR!@#$1234") == "!@#$1234foobar!@#$1234");
+assert( lower( FOOBAR ) == foobar );
+assert( lower( "THIS IS A TEST" ) == ts );
 
+echo( "testing str_lower()" );
+assert( str_lower( "" ) == "" );
+assert( str_lower( "  " ) == "  " );
+assert( str_lower( "abc" ) == "abc" );
+assert( str_lower( FOOBAR ) == foobar );
+assert( str_lower( "THIS IS A TEST" ) == ts );
 
 echo( "testing upper()" );
 assert( is_undef( upper( 42 ) ) );
 assert( upper( "" ) == "" );
 assert( upper( "  " ) == "  " );
 assert( is_undef( upper( 32 ) ) );
-assert( upper("!@#$1234foobar!@#$1234") == "!@#$1234FOOBAR!@#$1234");
+assert( upper( foobar ) == FOOBAR );
+assert( upper( ts ) == "THIS IS A TEST" ) ;
 
+
+echo( "testing str_upper()" );
+assert( str_upper( "" ) == "" );
+assert( str_upper( "  " ) == "  " );
+assert( str_upper( foobar ) == FOOBAR );
+assert( str_upper( ts ) == "THIS IS A TEST" ) ;
 
 echo("testing str_equals:" );
 // string must be same length for this function

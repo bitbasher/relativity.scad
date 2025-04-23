@@ -98,10 +98,7 @@ echo("avg vec=", avg_vec( vec ));
 function num_in_range(num, min_num, max_num) = 
 	is_not_num( num ) || is_not_num( min_num ) || is_not_num( max_num ) ?
 		undef
-	: min_num > max_num ?
-		num >= max_num && num <= min_num
-	:
-		num >= min_num && num <= max_num
+	: min([min_num,max_num]) <= num && num <= max([min_num,max_num])
 	;
 
 if( _NUMTEST_ENABLED ) {

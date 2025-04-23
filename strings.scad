@@ -65,34 +65,97 @@ _ASCII_CONVERT  = _ASCII_LOWER_A-_ASCII_UPPER_A;
 _ASCII_DIGITS  = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
 
 
-
 // return a vector with the ASCII code values for each character in the string
-// simpler version doing same function
+// Note that the reverse operation is done by the built-in function chr(),
+//  so chr([1],[2],[3])    --> "123"
+// and chr([97],[98],[99]) --> "abc"
+// we replace non-printable chars with 0, ASCII NULL, to return a 
+//  vector with all elements of the same type, namely "num"
 function str_to_ascii( string ) = 
 	is_not_string(string) ?
 		[]
     : [for( c=string ) is_ascii(c) ? ord(c) : _ASCII_NULL ]
 	;
 
-// returns true if the given char is a legal ASCII character
-//  that is used in normal text. So TAB, NL etc are not allowed
-// this function is here to have direct access to
-//  the definition of _STRING_LEGAL as apposed to
-//  being placed in the logic.scan file
+
+// returns true if the given char is any printable ASCII
+//  char, including the basic formatting chars Return ("\r"),
+//  NewLine ("\n"), and Space (" ").
+// these function are here to have direct access to
+//  the definitions of _STRING_LEGAL, etc.
+//  as apposed to being placed in logic.scad 
 function is_ascii( char ) = 
 	_is_in_set( char, _STRING_LEGAL );
+
+// this is for all printable chars including blank (" ")
+function is_ascii_text( char ) = 
+	_is_in_set( char, _STRING_TEXT );
+
+function is_ascii_visible( char ) = 
+	_is_in_set( char, _STRING_VISIBLE );
+
+/* basic check of set membership.
+Foibles of type conversion in the OpenSCAD language mean
+that it works for some combinations of types
+checking  3,    [8,9,42]   --> false - correct
+checking  3,    [1,2,3]    --> true - correct
+checking [3],   [1,2,3]    --> true - correct
+checking [3],   [8,9,42]   --> true - incorrect
+checking [7,8], [7,8,9,42] --> true = 
+but also [7,8], [42,43,44] --> true  but should be false
+
+We only need to note the first time that any of
+ char occurs in set so we do not need to search for
+ ALL instances of char's elements.
+ when char is a string or list is longer than one
+ element it returns true if ANY of the char 
+ elements are in the set
+  */
+function _is_in_set( char, set ) =
+	search( char, set ) != []
+	;
+
+function is_in_set( char, set ) =
+	let( result=search( char, set ),
+		res2 = [for( r=result ) if( r!=[] ) r]
+		)
+	res2 == [] ? false : result != []
+	;
+
+// return true if the given character is in the given set.
+// this function is much stricter on its inputs than
+//  _is_in_set()
+//  char can only be a string containing a single character
+//  set must be a string
+function char_in_set( char, set, ignore_case=false ) =
+	is_not_string(  char ) || is_not_string(  set ) ?
+		false // TODO maybe undef ?
+	: str_is_undef_or_empty( set ) ?
+		false // TODO maybe undef ?
+	: len( char ) != 1 ?
+		false // TODO maybe undef ?
+	: ignore_case ?
+		_is_in_set( char_to_lower( char ) , str_lower( set ) )
+	:
+		_is_in_set( char, set )
+	;
+ 
+
+
 
 // return true if the given character (a string
 //  of only 1 character) is legal to be used in the
 //  name of an OpenSCAD variable name.
 // this function is here to have direct access to
 //  the definition of _VARNAME_STRING as apposed to
-//  being placed in the logic.scan file
+//  being placed in  logic.scan
 function _is_variable_safe(char) = 
-	is_not_string( char ) ?
-		undef
-	: _is_in_set( char, _VARNAME_STRING );
+	char_in_set( char, _VARNAME_STRING );
 
+
+// return true if the given string is legal to be
+//  used as the name of an OpenSCAD variable.
+//  sets up the recursion into _is_variable_name()
 function is_variable_name( string ) = 
 	is_not_string( string ) ?
 		undef
@@ -100,11 +163,15 @@ function is_variable_name( string ) =
 		_is_variable_name( string, lastInd )
 	;
 
+// return true if the given string is legal to be
+//  used as the name of an OpenSCAD variable.
+// i must be the last index of the given string to
+//  start the recursion at the end of the string.
 function _is_variable_name( string, i ) =
 	i == 0 ?
-		_is_in_set( string[0], _VARNAME_STRING )
+		_is_variable_safe( string[0] )
 	:  
-		_is_variable_name( string, i-1 ) && _is_in_set( string[i], _VARNAME_STRING )
+		_is_variable_name( string, i-1 ) && _is_variable_safe( string[i] )
 	;
 
 // return "true" if the characters of "string", starting from the 
@@ -247,38 +314,7 @@ function _match_set_reverse(string, set, pos) =
 		pos
 	;
 
-// return true if the given character is in the given set
-//  char must be a string containing a single character
-//  set must be a string
-function _char_in_set( char, set, ignore_case=false ) =
-	is_not_string(  char ) || is_not_string(  set ) ?
-		false // TODO maybe undef ?
-	: str_is_undef_or_empty( set ) ?
-		false // TODO maybe undef ?
-	: len( char ) != 1 ?
-		false // TODO maybe undef ?
-	: _is_in_set( char, set, ignore_case=ignore_case )
-	;
  
- // no checking version of _char_in_set
-function _is_in_set( char, set, ignore_case=false ) =
-   let(
-		ch = ignore_case ? lower(char) : char,
-		st = ignore_case ? lower(set)  : set
-		) 
-	search( ch, st ) != []
-	;
-
-
-/* TODO
-	is_not_num( code ) ?
-		undef
-	: num_in_range(code, _ASCII_0, _ASCII_9) ||
-	  num_in_range(code, _ASCII_UPPER_A, _ASCII_UPPER_Z) ||
-	  num_in_range(code, _ASCII_LOWER_A, _ASCII_LOWER_Z) ||
-	  code == _ASCII_UNDER;
-*/
-
 function str_equals(this, that, ignore_case=false) = 
 	is_not_string(this) || is_not_string(that) ?
 		undef
@@ -307,10 +343,10 @@ function upper(string) =
 		undef
 	: str_is_empty( string ) ?
 		""
-	: _upper( string )
+	: ascii_upper( string )
 	;
 
-function _upper(string) = 
+function ascii_upper(string) = 
 	let(code = str_to_ascii(string))
 	str_vector_join(
 		[for (c = code) 
@@ -320,24 +356,44 @@ function _upper(string) =
                 chr(c)
     	]);
 
+function str_upper(string) = 
+	chr( [for (c = string)
+			_is_in_set( c, _LOWER_STRING ) ? ord(c)-_ASCII_CONVERT : ord(c)
+    	])
+	;
+
+
 // set all letters to "lower case"
 function lower(string) = 
 	is_not_string( string ) ?
 		undef
 	: str_is_empty( string ) ?
 		""
-	: ascii_lower( str_to_ascii(string) )
+	: str_lower( string )
 	;
 
-function ascii_lower( code ) = 
-	let(lastInd=len(code)-1)
-    str_vector_join( [for (c = code)
-			c >= _ASCII_UPPER_A && c <= _ASCII_UPPER_Z?
-                chr(c+_ASCII_CONVERT)
-            :
-                chr(c)
-    	] )
-		;
+
+function str_lower(string) = 
+	chr( [for (c = string)
+			_is_in_set( c, _UPPER_STRING ) ? ord(c)+_ASCII_CONVERT : ord(c)
+    	])
+	;
+
+/*
+function str_lower(string) = 
+	let(code = str_to_ascii(string))
+	chr( [for (c = code) //echo( "chr", chr(c) )
+			num_in_range( c, _ASCII_UPPER_A, _ASCII_UPPER_Z ) ? c+_ASCII_CONVERT : c
+    	])
+	;
+ */
+function char_to_lower( c ) = 
+	num_in_range( ord(c), _ASCII_UPPER_A, _ASCII_UPPER_Z ) ? chr( ord(c)+_ASCII_CONVERT) : c
+	;
+
+function char_to_upper() = 
+	num_in_range( ord(c), _ASCII_LOWER_A, _ASCII_LOWER_Z ) ? chr( ord(c)-_ASCII_CONVERT) : c
+	;
 
 // set all words to "Title Case"
 // assumes that the given string contains space separated words
@@ -352,25 +408,33 @@ function title(string) =
 		to_title_vec( new_split( lower(string) )  )
 	;
 
-// set all elements of the given vector of words
-//  to Title Case
+// set all words in the given vector to Title Case
 function to_title_vec(word_vec) =
 	is_not_list( word_vec) || len(word_vec) <= 0 ?
 		undef
-    : str_vector_join(
-		[ for(word = word_vec ) first_cap( word ) ] )
+    :
+		str_vector_join( [ for(word = word_vec ) first_cap( word ) ] )
 	;
 
+
+// returns the given word with the first character
+//  forced to upper case.
+// this will, of course, work for any string but it
+//  is intended to handle the capitalisation of a 
+//  single word from a vector of strings that were 
+//  separated by delimiters in the original, contiguous
+//  string
 function first_cap( word ) =
 	str( upper(word[0]), after(word, 0) );
 
+// returns the given string swapped back to front
 function reverse(string) = 
 	is_not_string( string ) ?
 		undef
 	: len(string) <= 0?
 		""
-	: 
-        str_vector_join([for (i = [0:len(string)-1]) string[len(string)-1-i]])
+	: let( lastInd=len(string)-1 )
+        str_vector_join([for (i = [0:lastInd]) string[lastInd-i]])
     ;
 
 //return a segment of the given string from the "start" index 
@@ -382,24 +446,29 @@ function str_sub_from_for(string, start=0, length=undef ) =
 	is_not_string( string ) || start >= len(string) ?
 		undef
 	: length == undef ?
-	  	starting_from( string, start ) // code for return to the end of string
+		//echo( "stfrom", start )
+	  	starting_from( string, start=start ) // code for return to the end of string
 	: length >= len(string) ?
+		//echo( "take all ", start )
 		starting_from( string, start=start ) 
 	: length <=0 ?		// code for return null string
 		""
-	:
+	:	//echo( "ssff", start, length )
 		_str_sub_from_for( string, start, length )
 	;
 
 // check the start and length against the string
 function _str_sub_from_for(string, start, length ) =
-	let( endIndex = start + length-1, lastIndex = len(string)-1 )
-	endIndex > lastIndex ?
-		// str( "x ", start, " ", endIndex, " ", lastIndex, 
-		str_from_to( string, start, lastIndex ) // )
-	: 
-		//str( "y ", start, " ", endIndex,  " ", lastIndex, 
-		str_from_to( string, start, endIndex ) //)
+	length <= 0 ?
+		""
+	: let( 
+		endIndex = start + length-1,
+		lastIndex = len(string)-1,
+		usIndex = min(endIndex,lastIndex)
+		)
+
+		//echo( "_ssff ", start, endIndex, usIndex )
+		str_from_to( string, start, min(endIndex,lastIndex) )
 	;
 
 
@@ -493,11 +562,17 @@ function starting_from( string, start=0 ) =
 	: start > len(string)-1? // past the last index
 		"" 
 	: 
-		_sub_by_index( string, start, len(string)-1 ) ;
+		_sub_by_index( string, start, len(string)-1 )
+	;
 	
 
 function _sub_by_index( string, start, end ) =
+	chr( [for(c=[start:end]) ord(string[c])] )
+	;
+
+/* this also works
 	str_vector_join( [for ( i=[start:end]) string[i]] );
+	*/
 
 function parse_int(string) = 
 	let( numstr = trim(string) )
@@ -673,12 +748,12 @@ function _index_of_first(string, delim=" ", pos=0 ) =
 	and likewise
 	str_split( "oneword" ) should return ["oneword"]
  */
-function str_split( string, separator=" " ) =
+function str_split( string, delimiter=" " ) =
 	is_not_string( string ) ?
 		undef
 	: str_is_empty(string) ?
 		[""]
-	: _str_split( string, _index_of( string, separator ) );
+	: _str_split( string, _index_of( string, delimiter ) );
 
 // INPUTS
 //  the given string that we will extract words from
@@ -715,7 +790,41 @@ function _str_split(string, indices, i=0) =
         concat( str_between_indecies(string, indices[i-1].y, indices[i].x), _str_split(string, indices, i+1) )
     ;
 
+// returns the substring of the given string from
+//  the starting character to the ending character
+function mid( string, st, end) = 
+    chr( [for(c=[st:end]) ord(string[c])] )
+    ;
 
+
+// returns the substring of the given string from
+//  the starting character to the ending character
+function str_mid( string, st=0, end=undef ) =
+	is_undef(end) ?
+		str_mid( string, st, len(string)-1 )
+    :
+		chr( [for(c=[st:end]) ord(string[c])] )
+    ;
+
+// returns a vector of the positions in string where
+//  the character is the given delimiter, the space
+//  character by default
+function str_index( string, delim=" " ) =
+	search( delim, string, 0 )[0]
+	;
+
+// returns a vector of the blank separated words from
+//  the given string.
+function word_split( string ) =
+    let( seps=str_index( string, delim=" " ) )
+    [for( s=[0:len(seps)] )
+      let( 
+        st = s==0 ? 0: seps[s-1]+1,
+        en = s==len(seps) ? len(string)-1 :seps[s]-1
+        )
+      mid( string, st, en)
+      ]
+    ;
 
 
 /*
@@ -723,18 +832,16 @@ function _str_split(string, indices, i=0) =
 	the default is to separate on space characters, but any
 	string can be used to separate blocks of text in the input.
 
-	consider: this will return undef  
-	new_split( "some text", "z" ) ==> ["some text"]
+	(1) this: new_split( "some text", "z" ) returns undef 
 	as there is no instance of "z" in the string
-	and likewise
-	new_split( "oneword" ) should return ["oneword"] 
+	(2) new_split( "oneword" ) return ["oneword"] 
  */
-function new_split( string, separator=" " ) =
-	is_not_string( string ) ?
+function new_split( string, delimiter=" " ) =
+	is_not_string( string ) || is_not_string( delimiter ) ?
 		undef
-	: str_is_empty(string) || str_is_empty(separator) ?
+	: str_is_empty(string) || str_is_empty(delimiter) ?
 		[]
-	: _new_split( string, _index_of( string, separator ) );
+	: _new_split( string, _index_of( string, delimiter ) );
 
 
 function stringBlanks( qty, i=1 ) =
