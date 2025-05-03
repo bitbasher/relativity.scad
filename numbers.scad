@@ -135,6 +135,20 @@ echo( neq= _nearly_equal( 0.01000000000000001,  0.01000000000000001) );
 echo( neq=  nearly_equal( 0.01000000000000001,  0.01000000000000001) );
 }
 
+// input : list of numbers
+// output : sorted list of numbers
+function quicksort(arr) =
+    is_not_list(arr) || len(arr) <= 0 ?
+        [] 
+    : let(
+        pivot   = arr[floor(len(arr)/2)],
+        lesser  = [ for (y = arr) if (y  < pivot) y ],
+        equal   = [ for (y = arr) if (y == pivot) y ],
+        greater = [ for (y = arr) if (y  > pivot) y ]
+        ) 
+      concat( quicksort(lesser), equal, quicksort(greater) )
+    ;
+
 /*
 public static boolean nearlyEqual(float a, float b, float epsilon) {
 		final float absA = Math.abs(a);

@@ -813,18 +813,43 @@ function str_index( string, delim=" " ) =
 	search( delim, string, 0 )[0]
 	;
 
-// returns a vector of the blank separated words from
-//  the given string.
-function word_split( string ) =
-    let( seps=str_index( string, delim=" " ) )
-    [for( s=[0:len(seps)] )
-      let( 
-        st = s==0 ? 0: seps[s-1]+1,
-        en = s==len(seps) ? len(string)-1 :seps[s]-1
+/*
+   returns a vector of the blank separated words from
+    the given string.
+seps = [4, 7, 9] for string ts = "this is a test"
+ s  st en
+ 0, 0, 3   0th sep -> str(0,3) -> "this"
+ 1, 5, 6   1st sep -> str(5,6) -> "is"
+ 2, 8, 8   2nd sep -> str(8,8) -> "a"
+ 3, 10, 13 3rd sep -> str(10,13) -> "test"
+ */
+function word_split( string, delim=" " ) =
+	let( d=str_index( string, delim ), lenS=len(string), lastS=lenS-1 )
+    len(d)<=0 ?
+        ( lenS > 0 ? [string] : [] )
+    : len(d) == 1 ? (
+        d[0]==0 ?
+            [ _sub_by_index( string, d[0]+1, lastS ) ]
+        : ( d[0]== lastS ?
+              [ _sub_by_index( string, 0, d[0]-1 ) ]
+            : [
+				_sub_by_index( string, 0, d[0]-1 ),
+				_sub_by_index( string, d[0]+1, lastS)
+              ]
+          )
         )
-      mid( string, st, en)
-      ]
-    ;
+    :[for(
+        si=0, st= d[0]<=0 ? undef: 0, en=d[0]-1;
+        si<=len(d);
+			st= si<len(d)? d[si]+1 : undef,
+			si=si+1,
+			en= si<len(d) ? d[si]-1 : lastS 
+        )
+		if( ! is_undef(st) && st <= en )
+            //echo( n=si, st, en, d )
+            _sub_by_index( string, st, en )
+	];
+
 
 
 /*

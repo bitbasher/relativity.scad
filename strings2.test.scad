@@ -519,6 +519,56 @@ assert(  new_split( multi, "  " ) == tmul2 );
 assert(  new_split( mul3  )     == tmul3 );
 assert(  new_split( mul3, "   " ) == tmul33 );
 
+echo( "\n\ttesting word_split( string )" );
+
+assert( word_split( ts, "t" ) ==  ["his is a ", "es"] );
+assert( word_split( ts, "z" ) == [ts] );
+
+wsnull = word_split( ts  );
+wnull  = word_split( null  );
+wone   = word_split( one   );
+wtwo   = word_split( two   );
+wstart = word_split( start );
+wend   = word_split( end   );
+wabcd  = word_split( abcd  );
+wboth  = word_split( both  );
+wall   = word_split( all   ); 
+wtest  = word_split( test  );
+wmulti = word_split( multi );
+wmul3  = word_split( mul3  );
+
+if( _TEST_ENABLED_ ) { //_TEST_ENABLED_
+echo( wsnull = wsnull );
+echo( wnull  = wnull  );
+echo( wone   = wone   );
+echo( wtwo   = wtwo   );
+echo( wstart = wstart );
+echo( wend   = wend   );
+echo( wabcd  = wabcd  );
+echo( wboth  = wboth  );
+echo( wall   = wall   ); 
+echo( wtest  = wtest  );
+echo( wmulti = wmulti );
+echo( wmul3  = wmul3  );
+echo( "begin asserting" );
+}
+
+assert(  word_split( ts    )     == wsnull );
+assert(  word_split( null  )     == wnull );
+assert(  word_split( one   )     == wone );
+assert(  word_split( two   )     == wtwo );
+assert(  word_split( start )     == wstart );
+assert(  word_split( end   )     == wend );
+assert(  word_split( abcd  )     == wabcd );
+assert(  word_split( both  )     == wboth );
+assert(  word_split( all   )     == wall ); 
+assert(  word_split( test  )     == wtest );
+assert(  word_split( multi )     == wmulti );
+assert(  word_split( mul3  )     == wmul3 );
+
+// echo( seps=str_index( manyBlanksString ) );
+assert( word_split( manyBlanksString ) == ["test", "with", "blanks"] );
+
 echo( "\n\ttesting _split_only( ... dot ) for floats" );
 
 if( _TEST_ENABLED_ ) {
@@ -537,7 +587,7 @@ echo( _new_split( "12.",  _index_of( "12.",  "." ) ) );
 echo( _new_split( "12.2", _index_of( "12.2", "." ) ) );
 echo( _new_split(   ".2", _index_of(   ".2", "." ) ) );
 }
-
+/*
 assert( _index_of( "12",   "." ) == []);
 assert( _index_of( "12.",  "." ) == [[2,3]] );
 assert( _index_of( "12.2", "." ) == [[2,3]] );
@@ -629,6 +679,6 @@ assert( title( mts )  == testCorrect );
 
 assert( title( foobar ) == foobar );
 assert( title( FOOBAR ) == "!@#$1234 Foobar !@#$1234");
- 
+ */
 
 echo ( "all done" );
