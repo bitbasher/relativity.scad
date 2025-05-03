@@ -12,25 +12,36 @@ function multi_index( string, delim=" " ) =
     quicksort( [for( d=seps ) for( c=d ) c ] )
     ;
 
-echo( str_index( " ", delim="  " ) );
-echo( str_index( "this  is a test", delim=" " ) );
+//echo( str_index( " ", delim="  " ) );
+//echo( str_index( "this  is a test", delim=" " ) );
+echo( multi_index( "+3var2", "=+" ) );
+echo( multi_index( "var1var2+", "=+" ) );
+echo( multi_index( "var1=var22", "=+" ) );
+echo( multi_index( "+3var2+", "=+" ) );
 echo( multi_index( "var1+3=var2+2", "=+" ) );
 
-echo( ths =multiword_split( "var1=var2+2", "=+" ));
+echo( mws=multiword_split( "", "=+" ) );
+echo( mws=multiword_split( "3var2", "=+" ) );
+echo( mws=multiword_split( "+3var2", "=+" ) );
+echo( mws=multiword_split( "var1var2+", "=+" ) );
+echo( mws=multiword_split( "var1=var22", "=+" ) );
+echo( mws=multiword_split( "+3var2+", "=+" ) );
+echo( mws=multiword_split( "var1+3=var2+2", "=+" ) );
+
 
 // test bed for word_split
 function multiword_split( str, del=" " ) = 
-	let( d=multi_index( str, del ) )
+	let( d=multi_index( str, del ), lenS=len(str), lastS=lenS-1 )
     len(d)<=0 ?
-        (len(str) > 0 ? [str] : [] )
+        (lenS > 0 ? [str] : [] )
     : len(d) == 1 ? (
         d[0]==0 ?
-            [ _sub_by_index( d[0]+1,len(str)-1 ) ]
-        : ( d[0]==len(str)-1 ?
-            [ _sub_by_index( 0,d[0]-1 ) ]
+            [ _sub_by_index( str,d[0]+1,lastS ) ]
+        : ( d[0]==lastS ?
+            [ _sub_by_index( str,0,d[0]-1 ) ]
             : [
-            _sub_by_index( 0,d[0]-1 ),
-            _sub_by_index( d[0]+1,len(str)-1 )
+            _sub_by_index( str,0,d[0]-1 ),
+            _sub_by_index( str,d[0]+1,lastS )
             ]
           )
         )
@@ -39,11 +50,11 @@ function multiword_split( str, del=" " ) =
         si<=len(d);
 			st= si<len(d)? d[si]+1 : undef,
 			si=si+1,
-			en= si<len(d) ? d[si]-1 : len(str)-1 
+			en= si<len(d) ? d[si]-1 : lastS 
         )
 		if( ! is_undef(st) && st <= en )
             echo( n=si, st, en, d )
-            _sub_by_index( st,en )
+            _sub_by_index( str,st,en )
 	];
 
 
