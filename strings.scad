@@ -431,6 +431,8 @@ function first_cap( word ) =
 function reverse(string) = 
 	is_not_string( string ) ?
 		undef
+	: ! is_string( string ) ?
+		undef
 	: len(string) <= 0?
 		""
 	: let( lastInd=len(string)-1 )
@@ -624,6 +626,27 @@ function parse_float(string) =
 		_split_float( string, _index_of( string, "." ) )
 	;
 
+// if the inputs given are of the correct types
+//   return a vector extracted from "array" by taking elements
+//   from position "start" to (but not including) element "end"
+// unless
+//   start is negative - "start" is theindex of the element to start
+//    the extraction from, counting from the END of the array.
+//    "end" is the index of the last element to extract. 
+//   end is negative - extract from index "start" to "end" elements
+//    from the end of the vector. the default of -1 is to use the -ve
+//    "end" case to return from "start" to the last element of the
+//    array, namely index=len(array)-1.
+//    Special case: if "end" is past the end of array it adjusted
+//    to indicate the last element of the array, using lastindex()
+//    
+// checks:
+//   return undef if array does not exist, or is not a vector
+//   return an empty vector ( [] ) if "array" is an empty vector
+//   return undef if start is not defined
+//   return an empty vector ( [] ) if "start" is past the end
+//   return undef if end is not defined
+//
 
 function _split_float( string, delims ) = 
     is_undef(delims) || is_not_list(delims) ?
