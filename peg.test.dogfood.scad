@@ -1,4 +1,5 @@
-include <peg.scad>
+include <strings.scad>
+include <unit_test.scad>
 
 _peg_peg = 
 _index_peg_refs
