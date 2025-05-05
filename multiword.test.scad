@@ -25,8 +25,9 @@ echo( mws=multiword_split( "3var2", "=+" ) );
 echo( mws=multiword_split( "+3var2", "=+" ) );
 echo( mws=multiword_split( "var1var2+", "=+" ) );
 echo( mws=multiword_split( "var1=var22", "=+" ) );
-echo( mws=multiword_split( "+3var2+", "=+" ) );
-echo( mws=multiword_split( "var1+3=var2+2", "=+" ) );
+echo( both=multiword_split( "+3var2+", "=+" ) );
+echo( abcd=multiword_split( "+a=b+c=d+", "=+" ) );
+echo( abcd=multiword_split( "this+is=a+test", "=+" ) );
 
 
 // test bed for word_split
@@ -36,11 +37,12 @@ function multiword_split( str, del=" " ) =
         (lenS > 0 ? [str] : [] )
     : len(d) == 1 ? (
         d[0]==0 ?
-            [ _sub_by_index( str,d[0]+1,lastS ) ]
+            [ str[d[0]], _sub_by_index( str,d[0]+1,lastS ) ]
         : ( d[0]==lastS ?
-            [ _sub_by_index( str,0,d[0]-1 ) ]
+            [ _sub_by_index( str,0,d[0]-1 ), str[d[0]] ]
             : [
             _sub_by_index( str,0,d[0]-1 ),
+            str[d[0]],
             _sub_by_index( str,d[0]+1,lastS )
             ]
           )
@@ -51,10 +53,11 @@ function multiword_split( str, del=" " ) =
 			st= si<len(d)? d[si]+1 : undef,
 			si=si+1,
 			en= si<len(d) ? d[si]-1 : lastS 
-        )
+        ) each
 		if( ! is_undef(st) && st <= en )
-            echo( n=si, st, en, d )
-            _sub_by_index( str,st,en )
+            echo( n=si, st, en, d[si], str[d[si]] )
+            [ _sub_by_index( str,st,en ), str[d[si]] ]
+
 	];
 
 
