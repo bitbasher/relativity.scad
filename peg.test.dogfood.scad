@@ -198,17 +198,17 @@ _index_peg_refs
 					["ref", "positive_character_set"],
 					["ref", "literal"],
 					["sequence",
-						["private", ["literal", "("]],
+						["private", ["literal", "("] ],
 						["ref", "SPACE"],
 						["ref", "operation"],
 						["ref", "SPACE"],
-						["private", ["literal", ")"]],
-					],
+						["private", ["literal", ")"] ],
+						],
 					["ref", "ref"]
-				],
+					],
 				["ref", "SPACE"]
-			]
-		],
+				]
+			],
 		//wildcard = #"."
 		//ref	= [a-zA-Z0-9_-]+
 		//literal	
@@ -350,9 +350,6 @@ _index_peg_refs
 				["zero_to_many", ["character_set_shorthand", "s"]]
 			]
 		],
-
-
-
 	]
 );
 
@@ -688,118 +685,123 @@ echo(_unit_test(
    		, [["private_rule", "foo", ["ref", "bar"]]],
 
     ]
-));
+	)
+	);
 
 
-//echo(_unit_test(
-//	"grammar dogfood",
-//    [
-//
-//        _match_parsed_peg( 
-//        	"foo=bar baz=qux", 
-//        	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//        	, [["grammar", 
-//    	    		["rule", "foo", ["ref", "bar"]], 
-//    	    		["rule", "baz", ["ref", "qux"]]
-//        		]],
-//	    _match_parsed_peg( 
-//        	"grammar=rule+ rule=operation", 
-//	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//	    	, [["grammar", 
-//	    			["rule", "grammar", ["one_to_many", ["ref", "rule"]]], 
-//	    			["rule", "rule", ["ref", "operation"]]
-//    			]],
-//	    _match_parsed_peg( 
-//        	"grammar=rule+ rule=ref equals operation", 
-//	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//			, [["grammar", 
-//					["rule", "grammar", ["one_to_many", ["ref", "rule"]]], 
-//					["rule", "rule", 
-//						["sequence", 
-//							["ref", "ref"], 
-//							["ref", "equals"], 
-//							["ref", "operation"]
-//						]
-//					]
-//				]],
-//	    _match_parsed_peg( 
-//        	"grammar=(rule/private_rule)+ rule=ref equals operation", 
-//	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//			, [["grammar", 
-//					["rule", "grammar", 
-//		    			["one_to_many", 
-//		    				["choice", 
-//		    					["ref", "rule"], 
-//		    					["ref", "private_rule"]
-//							]
-//						]
-//					], 
-//					["rule", "rule", 
-//						["sequence", 
-//							["ref", "ref"], 
-//							["ref", "equals"], 
-//							["ref", "operation"]
-//						]
-//					]
-//				]],
-//
-//	    _match_parsed_peg( 
-//        	"grammar=(rule/private_rule)+ rule=ref '=' operation", 
-//	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//	    	, [["grammar", 
-//	    			["rule", "grammar", 
-//	    				["one_to_many", 
-//	    					["choice", 
-//	    						["ref", "rule"], 
-//	    						["ref", "private_rule"]
-//    						]
-//						]
-//					], 
-//					["rule", "rule", 
-//						["sequence", 
-//							["ref", "ref"], 
-//							["literal", "="], 
-//							["ref", "operation"]
-//						]
-//					]
-//				]],
-//
-//	    _match_parsed_peg( 
-//        	"grammar=(rule/private_rule)+ rule=ref+ '=' operation", 
-//	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//	    	, [["grammar", 
-//	    			["rule", "grammar", 
-//	    				["one_to_many", 
-//	    					["choice", ["ref", "rule"], ["ref", "private_rule"]]
-//    					]
-//					], 
-//	    			["rule", "rule", 
-//	    				["sequence", 
-//	    					["one_to_many", ["ref", "ref"]], 
-//	    					["literal", "="], 
-//	    					["ref", "operation"]
-//    					]
-//					]
-//				]],
-//
-//	    _match_parsed_peg( 
-//        	"
-//        	grammar=(rule/private_rule)+ 
-//        	rule=\\w+ '=' operation
-//        	", 
-//	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
-//	    	, [["grammar", 
-//	    			["rule", "grammar", 
-//	    				["one_to_many", ["choice", ["ref", "rule"], ["ref", "private_rule"]]]
-//	    			], 
-//	    			["rule", "rule", 
-//	    				["sequence", 
-//	    					["one_to_many", ["character_set_shorthand", "w"]], 
-//	    					["literal", "="], 
-//	    					["ref", "operation"]
-//    					]
-//    				]
-//				]]
-//	    ,
-//    ]
-//);
+/*
+echo( _unit_test(
+	"grammar dogfood",
+    [
+        _match_parsed_peg( 
+        	"foo=bar baz=qux", 
+        	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") 
+			)
+			[_PARSED],
+			[["grammar", 
+    	    	["rule", "foo", ["ref", "bar"]], 
+    	    	["rule", "baz", ["ref", "qux"]]
+        		]],
+	    _match_parsed_peg( 
+        	"grammar=rule+ rule=operation", 
+	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") )[_PARSED]
+	    	, [["grammar", 
+	    		["rule", "grammar", ["one_to_many", ["ref", "rule"]]], 
+	    		["rule", "rule", ["ref", "operation"]]
+    			]],
+	    _match_parsed_peg( 
+        	"grammar=rule+ rule=ref equals operation", 
+	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") 
+			)[_PARSED],
+			[["grammar", 
+				["rule", "grammar", ["one_to_many", ["ref", "rule"]]], 
+				["rule", "rule", ["sequence", 
+									["ref", "ref"], 
+									["ref", "equals"], 
+									["ref", "operation"]
+									]
+					]
+				]],
+	    _match_parsed_peg( 
+        	"grammar=(rule/private_rule)+ rule=ref equals operation", 
+	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") 
+			)[_PARSED],
+			[["grammar", 
+				["rule", "grammar", ["one_to_many", 
+		    							["choice",
+											["ref", "rule"], 
+		    								["ref", "private_rule"]
+											]
+										]
+					], 
+				["rule", "rule", ["sequence", 
+									["ref", "ref"], 
+									["ref", "equals"], 
+									["ref", "operation"]
+									]
+					]
+				]],
+
+	    _match_parsed_peg( 
+        	"grammar=(
+				rule/private_rule)+ rule=ref '=' operation", 
+	    		_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") 
+			)[_PARSED],
+		 	[["grammar", 
+	    		["rule", "grammar", ["one_to_many", ["choice", 
+	    												["ref", "rule"], 
+	    												["ref", "private_rule"]
+    													]
+													]
+								], 
+				["rule", "rule", ["sequence", ["ref", "ref"], 
+											  ["literal", "="], 
+											  ["ref", "operation"]
+									]
+					]
+				]],
+
+	    _match_parsed_peg(
+        	"grammar=(rule/private_rule)+ rule=ref+ '=' operation", 
+	    	_peg_peg, 0, peg_op=_get_rule(_peg_peg, "grammar") 
+			)[_PARSED], 
+			[["grammar", ["rule", "grammar", 
+							["one_to_many", 
+	    						["choice",
+									["ref", "rule"], 
+									["ref", "private_rule"]
+									]
+    							]
+							], 
+	    				["rule", "rule", ["sequence",
+											["one_to_many", ["ref", "ref"] ], 
+	    									["literal", "="], 
+	    									["ref", "operation"]
+    										]
+							]
+				]],
+
+	    _match_parsed_peg(
+        	"grammar=(rule/private_rule)+ rule=\\w+ '=' operation", 
+	    	_peg_peg, 0, 
+			peg_op=_get_rule(_peg_peg, "grammar") 
+			)[_PARSED],
+			[["grammar", 
+	    		["rule", "grammar", ["one_to_many", ["choice", 
+														["ref", "rule"], 
+														["ref", "private_rule"]
+														]
+										]
+	    			], 
+	    		["rule", "rule", ["sequence", ["one_to_many", 
+												["character_set_shorthand", "w"]
+												], 
+	    							["literal", "="], 
+	    							["ref", "operation"]
+    								]
+    				]
+				]],
+    ]
+	) 	// end unit_test 
+	);	// end echo()
+ */

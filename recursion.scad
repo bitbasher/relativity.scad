@@ -20,7 +20,10 @@ function _coalesce_true( test, trueaction, falseaction ) =
 // This is an alternative to _null_coalesce
 function _coalesce_on( value, error, fallback ) = 
 	value == error? fallback : value;
-	
+
+/* A more straight forward coalesce function.
+ test the given value against the correct value
+ and if they are equal then return the good, else the bad
 function _coalesce_test( value, correct, good, bad ) =
 	value == correct ? good : bad;
 	;
