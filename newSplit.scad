@@ -1,14 +1,9 @@
-_newSplit_version = 
-	[2025, 03, 29, 1];
-function newSplit_version() = _newSplit_version;
-function numbes_version_num() =
-	_newSplit_version.x * 10000 +
-    _newSplit_version.y * 100 +
-    _newSplit_version.z +
-    _newSplit_version[4]/10;
+_newSplit_version = [2025, 03, 29, 1];
+function _newSplit_version() = _newSplit_version;
+function _newSplit_version_str() =
+	let( s=_newSplit_version )
+	str( s.x, s.y, s.z, ".", s[3] );
 
-
-//include <strings.scad>
 
 
 function _new_split(string, delims, i=0) = 

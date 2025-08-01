@@ -1,46 +1,66 @@
-_vectors_version = [25, 02, 28, 1];
+_vectors_version = [2025, 05, 08, 1];
 function vectors_version_vec() =
 	_vectors_version;
-function vectors_version_num() =
-    _vectors_version.x * 100000 +
-    _vectors_version.y * 100 +
-    _vectors_version.z +
-    _vectors_version[3] / 10 ;
 function vectors_version_str() =
-	str( vectors_version_num() );
+  let( vv=_vectors_version )
+	str( vv.x, vv.y, vv.z, ".", vv[3] );
     
 include <numbers.scad>
 
-// Vector operations
+/// Vector operations
 
-function is_not_list( list ) =
-	is_undef( list ) || ! is_list( list );
+/**
+  return true if the given input is NOT a 
+  defined item of type "list". Note that
+  in OpenSCAD "list" is also known as a vector.
 
-
-// return true if the given vector undef or
-//  not a list/vector 
-function is_not_vector(vector) = 
-	is_not_list( vector ) ;
-
-
-// return true if the given vector is empty
-//  but it must exist or we return undef
-function vec_is_empty(vector) = 
-	is_not_list( vector ) ? undef : vector == [] ;
+  The intended use is to check inputs to functions
+  that should be lists in the form of a tertiary
+  "?" operator, like:
+    is_not_list(input) ? undef : do_good_stuff(input);
+  */
+function is_not_list( input ) =
+	is_undef( input ) || ! is_list( input );
 
 
-/* 
-LASTINDEX
-Returns the index of the last element of an array (list)
+/**
+  return true if the given input is a valid
+  list, which decision is deferred to is_not_list().
+  This means it must be a defined item that is
+  in fact a list.
+
+  The intended use is to check inputs to functions
+  that should be lists in the form of a tertiary
+  "?" operator, like:
+    is_not_vector(input) ? undef : do_good_stuff(input);
+*/ 
+function is_not_vector(input) = 
+	is_not_list( input ) ;
+
+
+/**
+  return true if the given vector is exactly a 
+  defined item of list type with no elements.
+ */
+function vec_is_empty(input) = 
+	is_not_list( input ) ? undef : input == [] ;
+
+
+/**
+lastindex()
+
+Returns the index of the last element of an array
+(AKA list or vector)
 following the rules for the "end" parameter of slice().
 The array is not known in the function but is assumed to
-be an list in the OpenSCAD language.
+be an list in the OpenSCAD language, which means its first
+index is zero.
 
 INPUTS
-  lenArray - a whole number value for the number of
+  lenArray - a whole number value giving the quantity of
     elements in an array.
-  end - a whole number code to be processed to calculate
-    the last element to be "sliced" from the array.
+  end - a whole number index value to be checked against
+    the last element of an array.
 
 Returns
   index of the last element to be included in the slice
@@ -68,27 +88,67 @@ LOGIC
         also for any value of more negative input.
 
 LOCAL VALUES
-     lastInd = length of array - 1
+    lastInd = length of array - 1
  
-     inputs are not checked so they must be defined and 
-     be numbers.
+    inputs are not checked so they must be defined 
+     numbers.
  */
 function lastindex( lenArray, end ) =
     let( lastInd = lenArray-1 )
     end >= 0 ?
         // end is positive
-        minOf(lastInd, end)
+        min(lastInd, end)
     :   // end is negative
         max( 0,lastInd+end )
     ;
 
-//  inputs are not checked
-//
+/**
+  startindex()
+
+Returns the index of the first element of an array
+(AKA list or vector)
+following the rules for the "start" parameter of slice().
+The array is not known in the function but is assumed to
+be an list in the OpenSCAD language, which means its first
+index is zero.
+
+INPUTS
+  lenArray - a whole number value giving the quantity of
+    elements in an array.
+  start - a whole number index value to be checked against
+    the first element of an array.
+
+Returns
+  index of the first element to be included in the slice
+  taken from an array
+
+LOGIC
+  if start is positive it represents the first index in 
+  an array to be taken for the slice
+    if start is less than zero 
+      reduce it to zero, the first possible index
+    else
+      return start unchanged
+  else // start is negative
+    take "start" as the "distance" from the end of 
+    the array to use as the first index of the slice.
+ 
+  EXAMPLES
+    with lenArray=8 the last index is 7 so
+    start=-3 means extract starting at [4]
+    start=-lastInd start with the 0-th element
+
+LOCAL VALUES
+    lastInd = length of array - 1
+ 
+    inputs are not checked so they must be defined 
+    numbers.
+ */
 function startindex( lenArray, start ) =
     let( lastInd = lenArray-1 )
     start >= 0 ?
         // start is positive
-        minOf(lastInd, start)
+        min(lastInd, start)
     :   // start is negative
         max( 0,lastInd+start )
     ;
@@ -126,7 +186,7 @@ function slice(array, start=0, end=-1) =
  */
 function _slice( array, start=0, end="x" ) =
     
-	is_undef( array ) || ! is_list( array ) ?
+	is_not_list( array ) ?
 		undef
 	: array == [] ?
 		[]
@@ -155,13 +215,26 @@ function _slice_deep( array, start, end ) =
     [for (i=[start:end]) array[i]]
 	;
 
-// return true if all elements of the two given vectors
-//  match
-function vec_equals(this, that, ignore_case=false) = 
-	is_not_list(this) || is_not_list(that) ?
-		undef
-	: len(this) != len(that) ?
-		false
-	: all( [ for( i=[0:len(this)] ) this[i] == that[i] ] )
-	;
 
+
+/**
+	quicksort()
+
+	arr : a vector of numeric values
+	output : the same vector of numbers, but sorted
+		from smallest to largest
+
+	taken from the example in the OpenSCAD language
+	documentation.
+ */
+function quicksort(arr) =
+    vec_is_empty( arr ) ?
+        [] 
+    : let(
+        pivot   = arr[floor(len(arr)/2)],
+        lesser  = [ for (y = arr) if (y  < pivot) y ],
+        equal   = [ for (y = arr) if (y == pivot) y ],
+        greater = [ for (y = arr) if (y  > pivot) y ]
+        ) 
+      concat( quicksort(lesser), equal, quicksort(greater) )
+    ;

@@ -1,17 +1,30 @@
 include <numbers.scad>
 include <logic.scad>
 
+_TEST_ENABLED_ = false;
+
+/**
+
+ */
 function _sub_by_index( string, start, end ) =
 	chr( [for(c=[start:end]) ord(string[c])] )
 	;
+
+/**
+
+ */
 function str_index( string, delim=" " ) =
 	search( delim, string, 0 )[0];
 
+/**
+
+ */
 function multi_index( string, delim=" " ) =
 	let( seps=search( delim, string, 0 ) )
     quicksort( [for( d=seps ) for( c=d ) c ] )
     ;
 
+if( _TEST_ENABLED_ ) {
 //echo( str_index( " ", delim="  " ) );
 //echo( str_index( "this  is a test", delim=" " ) );
 echo( multi_index( "+3var2", "=+" ) );
@@ -25,12 +38,15 @@ echo( mws=multiword_split( "3var2", "=+" ) );
 echo( mws=multiword_split( "+3var2", "=+" ) );
 echo( mws=multiword_split( "var1var2+", "=+" ) );
 echo( mws=multiword_split( "var1=var22", "=+" ) );
-echo( both=multiword_split( "+3var2+", "=+" ) );
+echo( both=multiword_split( "+9var8+", "=+" ) );
 echo( abcd=multiword_split( "+a=b+c=d+", "=+" ) );
 echo( abcd=multiword_split( "this+is=a+test", "=+" ) );
+}
 
 
-// test bed for word_split
+/**
+    test bed for word_split
+ */
 function multiword_split( str, del=" " ) = 
 	let( d=multi_index( str, del ), lenS=len(str), lastS=lenS-1 )
     len(d)<=0 ?
@@ -62,7 +78,7 @@ function multiword_split( str, del=" " ) =
 
 
 
-/*
+if( _TEST_ENABLED_ ) {
 echo( null=word_split( ""));
 echo( one =word_split( "oneword" ));
 echo( one =word_split( " start" ));
@@ -75,4 +91,4 @@ echo( thz =word_split( "this is a test", "z" ));
 echo( yet =word_split( " yet another test" ));
 echo( abc =word_split( " a b C D " ));
 echo( yet =word_split( "  multiple  blanks  " ));
-*/
+}

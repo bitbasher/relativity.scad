@@ -1,28 +1,16 @@
 include <strings.scad>
+include <strings.test-common.scad>
+
+echo( "testing strings functions of relativity library" );
+echo( "\tPart 2" );
+echo( strings_version = strings_version_str() );
 
 _TEST_ENABLED_ = false;
 
-footest = "foo  (1, bar2)";
-regex_test = "foooobazfoobarbaz";
-
-ts = "this is a test"; // test string
-//echo( "ascii code test string ", str_to_ascii( ts ) );
-
-pts = str( " " , ts , " " );
-mts = "This IS a tESt"; // test string with capitals
-
-nullString = "";
-
-tsEnd = len(ts)-1;
-tsQty = len(ts);
-
-digits = "0123456789";
-code_digits = str_to_ascii(digits);
-numbers = "some 123 numb 15.5 ers, a-23nd pun5556; tations99";
-
-foobar = "!@#$1234foobar@#$1234";
-FOOBAR = "!@#$1234 FOOBAR !@#$1234";
-
+echo( "/n/ttesting str_to_ascii():" );
+assert( str_to_ascii(  ts ) == tsascii  );
+assert( str_to_ascii( pts ) == ptsascii );
+assert( str_to_ascii( mts ) == mtsascii );
 
 echo( "testing starts_with:" );
 assert( is_undef( starts_with( 42, "this" ) ) );
@@ -180,10 +168,10 @@ assert( _match_set_reverse( "aaabbbcccaaa",   "a",  2 ) == pos0 );// 20, not fou
 assert( _match_set_reverse( "aaabbbcccaaa",  "ac",  pos12 ) == pos6 );//12 correct
 assert( _match_set_reverse( "aaabbbcccaaa", "abc",  pos12 ) == 0 );// 12 correct
 
-// echo( tsQty = tsQty );
-assert( _match_set_reverse( ts, " ", tsQty ) == tsQty );    // tsQty - not found
-assert( _match_set_reverse( ts, " ", tsQty-4 ) == tsQty-5 ); 
-assert( _match_set_reverse( ts, " ", tsQty-6 ) == tsQty-7 ); 
+// echo( tsLen = tsLen );
+assert( _match_set_reverse( ts, " ", tsLen ) == tsLen );
+assert( _match_set_reverse( ts, " ", tsLen-4 ) == tsLen-5 ); 
+assert( _match_set_reverse( ts, " ", tsLen-6 ) == tsLen-7 ); 
 assert( _match_set_reverse( pts, " ", len(pts) ) == len(pts)-1 ); 
 assert( _match_set_reverse( "     ", " ", 5 ) == 0 );
 
@@ -587,7 +575,7 @@ echo( _new_split( "12.",  _index_of( "12.",  "." ) ) );
 echo( _new_split( "12.2", _index_of( "12.2", "." ) ) );
 echo( _new_split(   ".2", _index_of(   ".2", "." ) ) );
 }
-/*
+
 assert( _index_of( "12",   "." ) == []);
 assert( _index_of( "12.",  "." ) == [[2,3]] );
 assert( _index_of( "12.2", "." ) == [[2,3]] );
@@ -660,7 +648,7 @@ assert( parse_float( "-.456" )   == -0.456);
 
 echo( "\n\ttesting title()" );
 assert( is_undef( title( [] ) ) );
-assert( title( "" ) == nullString );
+assert( title( "" ) == _STRING_NULL );
 threeBlanks = "   ";
 assert( title( threeBlanks ) == threeBlanks);
 assert( is_undef( title( 32 ) ) ); 
@@ -678,7 +666,7 @@ assert( title( mts )  == testCorrect );
 //echo( foo = title( foobar ) );
 
 assert( title( foobar ) == foobar );
-assert( title( FOOBAR ) == "!@#$1234 Foobar !@#$1234");
- */
+assert( title( SPCBAR ) == "!@#$1234 Foobar !@#$1234");
+
 
 echo ( "all done" );

@@ -1,7 +1,7 @@
-_strings_version = [2025, 04, 17, 1];
+_strings_version = [2025, 05, 08, 1];
 function strings_version() =
 	_strings_version;
-function strings_version_str() =
+function _strings_version_str() =
 	let(s=_strings_version)
 	str( s.x, s.y, s.z, ".", s[3] );
 
@@ -11,16 +11,16 @@ include <newsplit.scad>
 include <numbers.scad>
 include <recursion.scad>
 
+_STRING_DIGITS  = "0123456789"; // see also _ASCII_DIGITS
 
-_DIGITS_STRING  = "0123456789";
-_NUMERIC_STRING = str( "+,-.", _DIGITS_STRING, "e" );
-_NUMPUNC_STRING = "+,-.e";
-_MATH_STRING    = "!%&()*+,-/<=>^"; // math & boolean operators
-_PUNC_STRING    = "!\"&'(),-./:;<>?@[\\]`{|}~";
-_NULL_STRING	= "";
+_STRING_NUMERIC = str( "+,-.", _STRING_DIGITS, "e" );
+_STRING_NUMPUNC = "+,-.e";
+_STRING_MATH   = "!%&()*+,-/<=>^"; // math & boolean operators
+_STRING_PUNC    = "!\"&'(),-./:;<>?@[\\]`{|}~";
+_STRING_NULL	= "";
 
-_LOWER_STRING  = "abcdefghijklmnopqrstuvwxyz";
-_UPPER_STRING  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+_STRING_LOWER  = "abcdefghijklmnopqrstuvwxyz";
+_STRING_UPPER  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 // _ASCII_SPACE must be the first element in the
 //  white space string and its derivatives for the
@@ -42,7 +42,7 @@ _CHAR_CLOSANGLE = ">";
 _CHAR_UNDER     = "_";
 
 // the characters allowed in a variable name
-_VARNAME_STRING = str(_DIGITS_STRING,_UPPER_STRING,_CHAR_UNDER,_LOWER_STRING);
+_STRING_VARNAME = str(_STRING_DIGITS,_STRING_UPPER,_CHAR_UNDER,_STRING_LOWER);
 
 // the double quote (") and backslash (\) are escaped by a backslash
 _STRING_VISIBLE = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -147,10 +147,10 @@ function char_in_set( char, set, ignore_case=false ) =
 //  of only 1 character) is legal to be used in the
 //  name of an OpenSCAD variable name.
 // this function is here to have direct access to
-//  the definition of _VARNAME_STRING as apposed to
+//  the definition of _STRING_VARNAME as apposed to
 //  being placed in  logic.scan
 function _is_variable_safe(char) = 
-	char_in_set( char, _VARNAME_STRING );
+	char_in_set( char, _STRING_VARNAME );
 
 
 // return true if the given string is legal to be
@@ -358,7 +358,7 @@ function ascii_upper(string) =
 
 function str_upper(string) = 
 	chr( [for (c = string)
-			_is_in_set( c, _LOWER_STRING ) ? ord(c)-_ASCII_CONVERT : ord(c)
+			_is_in_set( c, _STRING_LOWER ) ? ord(c)-_ASCII_CONVERT : ord(c)
     	])
 	;
 
@@ -375,7 +375,7 @@ function lower(string) =
 
 function str_lower(string) = 
 	chr( [for (c = string)
-			_is_in_set( c, _UPPER_STRING ) ? ord(c)+_ASCII_CONVERT : ord(c)
+			_is_in_set( c, _STRING_UPPER ) ? ord(c)+_ASCII_CONVERT : ord(c)
     	])
 	;
 
@@ -882,7 +882,7 @@ function word_split( string, delim=" " ) =
 
 	(1) this: new_split( "some text", "z" ) returns undef 
 	as there is no instance of "z" in the string
-	(2) new_split( "oneword" ) return ["oneword"] 
+	(2) new_split( "oneword" ) returns ["oneword"] 
  */
 function new_split( string, delimiter=" " ) =
 	is_not_string( string ) || is_not_string( delimiter ) ?
@@ -891,13 +891,31 @@ function new_split( string, delimiter=" " ) =
 		[]
 	: _new_split( string, _index_of( string, delimiter ) );
 
-
-function stringBlanks( qty, i=1 ) =
+/*
+	return a string of the given number of blanks.
+	it defaults to returning a single blank, but if
+	called with a zero length it returns the expected
+	null string.
+ */
+function stringBlanks( qty, len=1 ) =
     qty == 0 ? ""
-    : i==qty ? " "
-    : str( " ", stringBlanks( qty, i+1 ) ) ;
+    : len==qty ? " "
+    : str( " ", stringBlanks( qty, len+1 ) ) ;
 
-
+/*
+	given a vector of strings (words) this function returns
+	a string of the words concatenated together. The
+	delimiter may be any string and, if given, will be
+	inserted between each one.
+	This version of the function checks that the given
+	string is, in fact, a string.
+	It also handles the special case of the given vector
+	being empty and returns a null string.
+	The use of the _str function sets up the recursion that
+	concatenates the strings in the vector so the index
+	parameter is given the last index of the given vector
+	to start at the end and work back to the zero-th string.
+ */
 function str_vector_join( strvec, delimiter="" ) = 
 	is_not_list( strvec ) ?
 		undef
@@ -905,12 +923,27 @@ function str_vector_join( strvec, delimiter="" ) =
 		""
 	: _str_vector_join(strvec, len(strvec)-1, delimiter=delimiter );
 
+/*
+	given a vector of strings (words) this function returns
+	a string of the words concatenated together. The
+	delimiter may be any string and, if given, will be
+	inserted between each one.
+	This version of the function does not check the input string.
+	This is the function that handles the recursion, starting at
+	the end of the vector and concatenating the words to the
+	zero-th.
+	This function can be called with only the vector in which
+	case the last index will be calculated.
+	Calling this function with a guess at the last index that is
+	larger than the actual length of the vector will cause it to
+	recurse on index-1 until it is the last index.
+ */
 function _str_vector_join( strvec, index=undef, delimiter="") =
 	is_undef( index ) ?
 		_str_vector_join( strvec, len(strvec)-1, delimiter=delimiter )
 	: index==0 ? 
 		str( strvec[0] ) // finish recursion at start of string
-	: index >= len(strvec) ?
+	: index >= len(strvec) ? // recurse until at last index
 		_str_vector_join( strvec, index-1, delimiter=delimiter )
 	:
 		str( _str_vector_join( strvec, index-1, delimiter=delimiter ), 
@@ -918,6 +951,23 @@ function _str_vector_join( strvec, index=undef, delimiter="") =
 			strvec[index]
 			) ;
 
+/*
+	given a vector of strings (words) this function returns
+	a string of the words concatenated together. The
+	delimiter may be any string and, if given, will be
+	inserted between each one.
+	This version of the function does not check the input string.
+	
+	This is simpler function than str_vector_join using looping
+	to perform the concatentation. It takes advantage of the
+	way that the built-in chr() function converts a vector of
+	numbers into a string, when the numbers are in the range 
+	of the visible ASCII characters.
+
+	The loop leaves an instance of the delimiter on the end of
+	the string which has to be removed when the delimiter is
+	NOT the null string.
+ */
 function str_join( strvec, delimiter="" ) =
 	let( str=chr( 
     	[ for(w=strvec) [
@@ -929,6 +979,23 @@ function str_join( strvec, delimiter="" ) =
 	delimiter == "" ? str : before( str, len(str)-len(delimiter) )
 	;
 
+/*
+	given a vector of strings (words) this function returns
+	a string of the words concatenated together. The
+	delimiter may be any string and, if given, will be
+	inserted between each one.
+	This version of the function does not check the input string.
+	
+	This is simpler function than str_vector_join using looping
+	to perform the concatentation. It takes advantage of the
+	way that the built-in chr() function converts a vector of
+	numbers into a string, when the numbers are in the range 
+	of the visible ASCII characters.
+
+	The loop leaves an instance of the delimiter on the end of
+	the string which has to be removed when the delimiter is
+	NOT the null string.
+ */
 function alt_join( strvec, delimiter="" ) =
     let( str=chr( [ for(w=strvec)
 		[
@@ -937,20 +1004,52 @@ function alt_join( strvec, delimiter="" ) =
         : is_string(w) ? 	[for( c=w )ord(c)]
         : ["x"] // we do not handle objects yet
         , [for(d=delimiter)ord(d)]
-        ] ]
+        ] 
+		]
         ) )
     delimiter == "" ? str : before(str,len(str)-len(delimiter))
     ;
 
+
+/*
+	given a vector of items of any type this function returns
+	a vector of each item converted to a string.
+	The delimiter may be any string and, if given, will be
+	inserted between each one.
+	This version of the function does not check the input string.
+	
+	This function was created as an extension of str_join() when
+	it was discovered (revealed during testing the effect of 
+	including non-string items in the vector) that the built-in 
+	chr() function converts even nested vectors of ASCII codes
+	into a string by concatenating the converted characters and
+	effectively flattening the nested vector.
+	
+	When the items are numbers the str() is used to create a 
+	string, which is then ASCII encoded.
+
+	Items that are vectors are handled by recursing into 
+	_alt_join(). This is easier than using a loop to handle 
+	each item along the vector inline in the alt_join(). It is
+	also necessary to handle the special case of NOT needing a
+	delimiter after the last item by emitting a null vector
+	as the last item in the returned vector. The chr() ignores 
+	null vectors as it converts codes to characters.
+
+	The loop leaves an instance of the delimiter on the end of
+	the string which has to be removed when the delimiter is
+	NOT the null string.
+ */
 function _alt_join( strvec, delimiter="" ) =
-	let( lensv = len(strvec) )
-    [ for(i=[0:lensv-1])
+	let( lastsv = len(strvec)-1 )
+    [ for(i=[0:lastsv])
 		let( w=strvec[i])
 		[
         is_num(w) ? 	 [for( s=str(w) ) ord(s)]
         : is_list(w) ? 	 _alt_join( w, delimiter=delimiter )
         : is_string(w) ? [for( c=w )ord(c)]
         : ["x"]  // we do not handle objects yet
-        , i<lensv-1 ? [for(d=delimiter)ord(d)] : []
-        ] ]
+        , i<lastsv ? [for(d=delimiter)ord(d)] : ""
+        ]
+	]
     ;
